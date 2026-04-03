@@ -74,10 +74,11 @@ export default function ClientSidebar({
   const [mobileOpen, setMobileOpen] = useState(false)
   const [tripDropdownOpen, setTripDropdownOpen] = useState(false)
 
-  const currentTrip = trips.find((t) => t.id === currentTripId)
-  const navItems = currentTripId
-    ? buildNavItems(currentTripId)
-    : dashboardOnlyNav
+  // Auto-detect tripId from URL when not provided as prop
+  const effectiveTripId = currentTripId || (pathname.split('/').length >= 3 && pathname.split('/')[2] ? pathname.split('/')[2] : undefined)
+
+  const currentTrip = trips.find((t) => t.id === effectiveTripId)
+  const navItems = effectiveTripId ? buildNavItems(effectiveTripId) : dashboardOnlyNav
 
   async function handleLogout() {
     const supabase = createClient()
@@ -131,7 +132,7 @@ export default function ClientSidebar({
                   }}
                   className={cn(
                     'w-full text-left px-4 py-2.5 font-lora text-sm transition-colors',
-                    trip.id === currentTripId
+                    trip.id === effectiveTripId
                       ? 'bg-brand-hover text-brand-gold-dark font-medium'
                       : 'text-brand-text hover:bg-brand-bg'
                   )}
