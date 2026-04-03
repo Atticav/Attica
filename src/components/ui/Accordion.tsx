@@ -55,7 +55,7 @@ function AccordionItemComponent({ item, isOpen, onToggle }: AccordionItemCompone
 
       <div
         style={{
-          maxHeight: isOpen ? `${contentRef.current?.scrollHeight ?? 2000}px` : '0px',
+          maxHeight: isOpen ? `${contentRef.current?.scrollHeight ?? 9999}px` : '0px',
           opacity: isOpen ? 1 : 0,
         }}
         className="overflow-hidden transition-all duration-300"
