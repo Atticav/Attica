@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { PlayCircle, FileText, Clock, BookOpen } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -65,8 +65,9 @@ export default function GuidePage() {
     loadTutorials()
   }, [loadTutorials])
 
-  const filteredTutorials = tutorials.filter(
-    (t) => activeFilter === 'all' || t.type === activeFilter
+  const filteredTutorials = useMemo(
+    () => tutorials.filter((t) => activeFilter === 'all' || t.type === activeFilter),
+    [tutorials, activeFilter]
   )
 
   if (loading) {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import {
   Plus, CheckSquare, FileText, Heart, CreditCard, Briefcase, Smartphone, Home, MoreHorizontal,
@@ -105,16 +105,18 @@ export default function ChecklistPage() {
   }
 
   // Group by section, sorting completed to bottom within each section
-  const sections = Array.from(new Set(items.map((i) => i.section)))
-  const groupedItems = sections.map((section) => ({
-    section,
-    items: items
-      .filter((i) => i.section === section)
-      .sort((a, b) => Number(a.is_completed) - Number(b.is_completed)),
-  }))
+  const { groupedItems, completedCount, totalCount } = useMemo(() => {
+    const sectionNames = Array.from(new Set(items.map((i) => i.section)))
+    const grouped = sectionNames.map((section) => ({
+      section,
+      items: items
+        .filter((i) => i.section === section)
+        .sort((a, b) => Number(a.is_completed) - Number(b.is_completed)),
+    }))
+    const completed = items.filter((i) => i.is_completed).length
+    return { groupedItems: grouped, completedCount: completed, totalCount: items.length }
+  }, [items])
 
-  const completedCount = items.filter((i) => i.is_completed).length
-  const totalCount = items.length
   const progressValue = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
   if (loading) {

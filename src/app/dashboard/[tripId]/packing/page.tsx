@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { Plus, AlertTriangle, Luggage } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -129,11 +129,15 @@ export default function PackingPage() {
     setSaving(false)
   }
 
-  const filteredItems = items
-    .filter((i) => activeFilter === 'all' || i.category === activeFilter)
-    .sort((a, b) => Number(a.is_packed) - Number(b.is_packed))
+  const filteredItems = useMemo(
+    () =>
+      items
+        .filter((i) => activeFilter === 'all' || i.category === activeFilter)
+        .sort((a, b) => Number(a.is_packed) - Number(b.is_packed)),
+    [items, activeFilter]
+  )
 
-  const packedCount = items.filter((i) => i.is_packed).length
+  const packedCount = useMemo(() => items.filter((i) => i.is_packed).length, [items])
   const totalCount = items.length
   const progressValue = totalCount > 0 ? Math.round((packedCount / totalCount) * 100) : 0
 

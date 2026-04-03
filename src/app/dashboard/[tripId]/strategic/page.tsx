@@ -149,7 +149,7 @@ export default function StrategicPage() {
           </p>
         </Card>
       ) : (
-        <Accordion items={accordionItems} allowMultiple defaultOpen={[sections[0]?.id]} />
+        <Accordion items={accordionItems} allowMultiple defaultOpen={sections[0] ? [sections[0].id] : []} />
       )}
     </div>
   )
