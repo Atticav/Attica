@@ -3,8 +3,9 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { tripId: string } }
+  { params }: { params: Promise<{ tripId: string }> }
 ) {
+  const { tripId } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -13,7 +14,7 @@ export async function GET(
   const { data, error } = await supabase
     .from('trips')
     .select('*')
-    .eq('id', params.tripId)
+    .eq('id', tripId)
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 404 });
@@ -23,8 +24,9 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { tripId: string } }
+  { params }: { params: Promise<{ tripId: string }> }
 ) {
+  const { tripId } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -44,7 +46,7 @@ export async function PATCH(
   const { data, error } = await supabase
     .from('trips')
     .update(body)
-    .eq('id', params.tripId)
+    .eq('id', tripId)
     .select()
     .single();
 
@@ -55,8 +57,9 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { tripId: string } }
+  { params }: { params: Promise<{ tripId: string }> }
 ) {
+  const { tripId } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -72,7 +75,7 @@ export async function DELETE(
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
   }
 
-  const { error } = await supabase.from('trips').delete().eq('id', params.tripId);
+  const { error } = await supabase.from('trips').delete().eq('id', tripId);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
   return NextResponse.json({ success: true });
