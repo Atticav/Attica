@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { PlayCircle, FileText, Clock, BookOpen } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -48,11 +48,7 @@ export default function GuidePage() {
   const [activeFilter, setActiveFilter] = useState<TutorialType | 'all'>('all')
   const [selectedTutorial, setSelectedTutorial] = useState<Tutorial | null>(null)
 
-  useEffect(() => {
-    loadTutorials()
-  }, [tripId])
-
-  async function loadTutorials() {
+  const loadTutorials = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
     const { data, error } = await supabase
@@ -63,7 +59,11 @@ export default function GuidePage() {
 
     if (!error && data) setTutorials(data)
     setLoading(false)
-  }
+  }, [tripId])
+
+  useEffect(() => {
+    loadTutorials()
+  }, [loadTutorials])
 
   const filteredTutorials = tutorials.filter(
     (t) => activeFilter === 'all' || t.type === activeFilter

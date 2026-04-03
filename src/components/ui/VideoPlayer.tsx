@@ -1,4 +1,4 @@
-import { ExternalLink, PlayCircle, FileText } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { TutorialType } from '@/lib/types'
 

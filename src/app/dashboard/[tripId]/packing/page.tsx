@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { Plus, AlertTriangle, Luggage } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -70,11 +70,7 @@ export default function PackingPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    loadItems()
-  }, [tripId])
-
-  async function loadItems() {
+  const loadItems = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
     const { data, error } = await supabase
@@ -85,7 +81,11 @@ export default function PackingPage() {
 
     if (!error && data) setItems(data)
     setLoading(false)
-  }
+  }, [tripId])
+
+  useEffect(() => {
+    loadItems()
+  }, [loadItems])
 
   async function togglePacked(item: PackingItem) {
     const supabase = createClient()

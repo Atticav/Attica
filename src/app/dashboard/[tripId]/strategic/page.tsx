@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import {
   Smartphone, Landmark, Shield, Car, ShoppingBag, Package, Info, ExternalLink, Compass,
@@ -30,11 +30,7 @@ export default function StrategicPage() {
   const [links, setLinks] = useState<StrategicLink[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadData()
-  }, [tripId])
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
 
@@ -54,7 +50,11 @@ export default function StrategicPage() {
     if (!sectionsResult.error && sectionsResult.data) setSections(sectionsResult.data)
     if (!linksResult.error && linksResult.data) setLinks(linksResult.data)
     setLoading(false)
-  }
+  }, [tripId])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   function getLinksForSection(sectionTitle: string): StrategicLink[] {
     return links.filter(

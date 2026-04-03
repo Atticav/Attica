@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import {
   Plus, CheckSquare, FileText, Heart, CreditCard, Briefcase, Smartphone, Home, MoreHorizontal,
@@ -44,11 +44,7 @@ export default function ChecklistPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    loadItems()
-  }, [tripId])
-
-  async function loadItems() {
+  const loadItems = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
     const { data, error } = await supabase
@@ -59,7 +55,11 @@ export default function ChecklistPage() {
 
     if (!error && data) setItems(data)
     setLoading(false)
-  }
+  }, [tripId])
+
+  useEffect(() => {
+    loadItems()
+  }, [loadItems])
 
   async function toggleCompleted(item: ChecklistItem) {
     const supabase = createClient()

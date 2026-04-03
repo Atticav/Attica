@@ -75,7 +75,8 @@ export default function ClientSidebar({
   const [tripDropdownOpen, setTripDropdownOpen] = useState(false)
 
   // Auto-detect tripId from URL when not provided as prop
-  const effectiveTripId = currentTripId || (pathname.split('/').length >= 3 && pathname.split('/')[2] ? pathname.split('/')[2] : undefined)
+  const pathSegments = pathname.split('/')
+  const effectiveTripId = currentTripId || (pathSegments.length >= 3 && pathSegments[2] ? pathSegments[2] : undefined)
 
   const currentTrip = trips.find((t) => t.id === effectiveTripId)
   const navItems = effectiveTripId ? buildNavItems(effectiveTripId) : dashboardOnlyNav
