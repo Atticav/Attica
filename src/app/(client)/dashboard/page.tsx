@@ -203,8 +203,7 @@ export default function DashboardPage() {
           <div className="h-48 overflow-hidden">
             <iframe
               src={`https://forecast7.com/en/pt/${encodeURIComponent(trip.destination)}/`}
-              frameBorder="0"
-              className="w-full h-full"
+              className="w-full h-full border-0"
               title="Previsão do tempo"
             />
           </div>
@@ -218,8 +217,7 @@ export default function DashboardPage() {
           <div className="h-48 overflow-hidden">
             <iframe
               src="https://wise.com/widget/currency-converter"
-              frameBorder="0"
-              className="w-full h-full"
+              className="w-full h-full border-0"
               title="Conversor de moedas"
             />
           </div>
