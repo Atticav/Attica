@@ -16,22 +16,29 @@ import {
   BookOpen,
   ScrollText,
   ChevronDown,
+  Languages,
+  Coins,
+  Zap,
+  Clock,
+  Sun,
+  Plane as PlaneIcon,
 } from 'lucide-react'
+import { getDestinationInfo } from '@/lib/destination-data'
 
 const sections = [
-  { icon: Map, label: 'Roteiro', desc: 'Dia a dia da sua viagem', color: 'text-sky-500', bg: 'bg-sky-50' },
-  { icon: DollarSign, label: 'Financeiro', desc: 'Controle de gastos e pagamentos', color: 'text-emerald-500', bg: 'bg-emerald-50' },
-  { icon: FileText, label: 'Documentos', desc: 'Passaportes, vistos e mais', color: 'text-amber-600', bg: 'bg-amber-50' },
-  { icon: Luggage, label: 'Mala Inteligente', desc: 'Lista de itens para empacotar', color: 'text-violet-500', bg: 'bg-violet-50' },
-  { icon: CheckSquare, label: 'Checklist', desc: 'Tarefas antes da viagem', color: 'text-green-600', bg: 'bg-green-50' },
-  { icon: Compass, label: 'Central Estratégica', desc: 'Links e informações essenciais', color: 'text-brand-gold-dark', bg: 'bg-brand-bg-secondary' },
-  { icon: PlayCircle, label: 'Guia Attica', desc: 'Vídeos e tutoriais exclusivos', color: 'text-rose-500', bg: 'bg-rose-50' },
-  { icon: ImageIcon, label: 'Galeria', desc: 'Fotos e vídeos do destino', color: 'text-pink-500', bg: 'bg-pink-50' },
-  { icon: UtensilsCrossed, label: 'Restaurantes', desc: 'Indicações gastronômicas', color: 'text-orange-500', bg: 'bg-orange-50' },
-  { icon: Camera, label: 'Fotografia', desc: 'Dicas para fotos incríveis', color: 'text-teal-500', bg: 'bg-teal-50' },
-  { icon: Globe, label: 'Cultura', desc: 'Costumes e informações locais', color: 'text-indigo-500', bg: 'bg-indigo-50' },
-  { icon: BookOpen, label: 'Vocabulário', desc: 'Palavras e frases essenciais', color: 'text-cyan-500', bg: 'bg-cyan-50' },
-  { icon: ScrollText, label: 'Contrato', desc: 'Documentos e acordos', color: 'text-gray-500', bg: 'bg-gray-100' },
+  { icon: Map, label: 'Roteiro', desc: 'Dia a dia da sua viagem' },
+  { icon: DollarSign, label: 'Financeiro', desc: 'Controle de gastos e pagamentos' },
+  { icon: FileText, label: 'Documentos', desc: 'Passaportes, vistos e mais' },
+  { icon: Luggage, label: 'Mala Inteligente', desc: 'Lista de itens para empacotar' },
+  { icon: CheckSquare, label: 'Checklist', desc: 'Tarefas antes da viagem' },
+  { icon: Compass, label: 'Central Estratégica', desc: 'Links e informações essenciais' },
+  { icon: PlayCircle, label: 'Guia Attica', desc: 'Vídeos e tutoriais exclusivos' },
+  { icon: ImageIcon, label: 'Galeria', desc: 'Fotos e vídeos do destino' },
+  { icon: UtensilsCrossed, label: 'Restaurantes', desc: 'Indicações gastronômicas' },
+  { icon: Camera, label: 'Fotografia', desc: 'Dicas para fotos incríveis' },
+  { icon: Globe, label: 'Cultura', desc: 'Costumes e informações locais' },
+  { icon: BookOpen, label: 'Vocabulário', desc: 'Palavras e frases essenciais' },
+  { icon: ScrollText, label: 'Contrato', desc: 'Documentos e acordos' },
 ]
 
 export default async function DashboardPage() {
@@ -54,14 +61,22 @@ export default async function DashboardPage() {
     .eq('client_id', user!.id)
     .order('created_at', { ascending: false })
 
+  const activeTrip = trips?.[0] ?? null
+  const destinationInfo = activeTrip
+    ? getDestinationInfo(activeTrip.destination, activeTrip.country)
+    : null
+  const daysUntilTrip = activeTrip?.start_date
+    ? Math.ceil((new Date(activeTrip.start_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : null
+
   return (
     <>
       {/* Hero Section */}
       <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
         {/* Background Image */}
         <Image
-          src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80"
-          alt="Travel landscape"
+          src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80"
+          alt="Mountain landscape"
           fill
           className="object-cover"
           priority
@@ -108,7 +123,7 @@ export default async function DashboardPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="font-cormorant text-4xl font-semibold text-brand-title">
-            Olá, {firstName} ✨
+            Olá, {firstName}
           </h1>
           <p className="font-outfit text-brand-muted mt-1">
             Bem-vindo(a) ao seu Caderno de Viagem
@@ -156,20 +171,99 @@ export default async function DashboardPage() {
           </Card>
         )}
 
+        {/* Informações do Destino */}
+        {activeTrip && destinationInfo && (
+          <div className="mb-10">
+            <h2 className="font-cormorant text-2xl font-semibold text-brand-title mb-4">
+              Informações do destino
+            </h2>
+
+            {/* Countdown + Destination header */}
+            <Card padding="md" className="mb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-cormorant text-xl font-semibold text-brand-title">
+                    {activeTrip.destination}
+                  </h3>
+                  {daysUntilTrip !== null && daysUntilTrip > 0 && (
+                    <p className="font-outfit text-sm text-brand-muted mt-1">
+                      Faltam <span className="text-brand-gold font-medium">{daysUntilTrip} dias</span> ✈
+                    </p>
+                  )}
+                </div>
+                {destinationInfo.travelStyle && (
+                  <span className="font-inter text-xs bg-brand-bg-secondary text-brand-gold-dark px-3 py-1 rounded-full">
+                    {destinationInfo.travelStyle}
+                  </span>
+                )}
+              </div>
+            </Card>
+
+            {/* Info grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {[
+                { icon: Globe, label: 'Destino', value: destinationInfo.country },
+                { icon: Languages, label: 'Idioma', value: destinationInfo.language },
+                { icon: Coins, label: 'Moeda', value: destinationInfo.currency },
+                { icon: Zap, label: 'Voltagem', value: destinationInfo.voltage },
+                { icon: Clock, label: 'Fuso horário', value: destinationInfo.timezoneOffset },
+                { icon: Sun, label: 'Melhor época', value: destinationInfo.bestSeason },
+              ]
+                .filter(item => item.value)
+                .map(({ icon: InfoIcon, label, value }) => (
+                  <Card key={label} padding="sm">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-full bg-brand-bg-secondary flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <InfoIcon size={16} strokeWidth={1.3} className="text-brand-gold" />
+                      </div>
+                      <div>
+                        <p className="font-inter text-xs text-brand-muted">{label}</p>
+                        <p className="font-outfit text-sm text-brand-title font-medium">{value}</p>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+            </div>
+
+            {/* Trip dates if available */}
+            {activeTrip.start_date && (
+              <Card padding="sm" className="mt-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-brand-bg-secondary flex items-center justify-center flex-shrink-0">
+                    <PlaneIcon size={16} strokeWidth={1.3} className="text-brand-gold" />
+                  </div>
+                  <div>
+                    <p className="font-inter text-xs text-brand-muted">Data</p>
+                    <p className="font-outfit text-sm text-brand-title font-medium">
+                      {new Date(activeTrip.start_date).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      {activeTrip.end_date && (
+                        <>
+                          {' · '}
+                          {Math.ceil((new Date(activeTrip.end_date).getTime() - new Date(activeTrip.start_date).getTime()) / (1000 * 60 * 60 * 24))} dias
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            )}
+          </div>
+        )}
+
         {/* Grade de seções */}
         <div>
           <h2 className="font-cormorant text-2xl font-semibold text-brand-title mb-4">
             Seu caderno de viagem
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {sections.map(({ icon: Icon, label, desc, color, bg }) => (
+            {sections.map(({ icon: Icon, label, desc }) => (
               <Card
                 key={label}
                 padding="sm"
                 className="flex flex-col items-center text-center hover:shadow-card hover:border-brand-gold/30 transition-all cursor-default"
               >
-                <div className={`w-12 h-12 rounded-full ${bg} flex items-center justify-center mb-3 mt-1`}>
-                  <Icon size={24} strokeWidth={1.5} className={color} />
+                <div className="w-12 h-12 rounded-full bg-brand-bg-secondary flex items-center justify-center mb-3 mt-1">
+                  <Icon size={22} strokeWidth={1.3} className="text-brand-gold" />
                 </div>
                 <p className="font-inter text-sm font-medium text-brand-title">{label}</p>
                 <p className="font-outfit text-xs text-brand-muted mt-1 leading-tight">{desc}</p>
