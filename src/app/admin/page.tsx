@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Card from '@/components/ui/Card'
+import Link from 'next/link'
 import { Users, Plane, TrendingUp, Clock } from 'lucide-react'
 
 export default async function AdminPage() {
@@ -78,34 +79,38 @@ export default async function AdminPage() {
           Ações rápidas
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Card
-            padding="md"
-            className="hover:shadow-card hover:border-brand-gold/30 transition-all cursor-pointer"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-brand-bg-secondary rounded-lg flex items-center justify-center">
-                <Users size={24} strokeWidth={1.5} className="text-brand-gold" />
+          <Link href="/admin/clients">
+            <Card
+              padding="md"
+              className="hover:shadow-card hover:border-brand-gold/30 transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-brand-bg-secondary rounded-lg flex items-center justify-center">
+                  <Users size={24} strokeWidth={1.5} className="text-brand-gold" />
+                </div>
+                <div>
+                  <h3 className="font-inter text-sm font-semibold text-brand-title">Gerenciar Clientes</h3>
+                  <p className="font-outfit text-xs text-brand-muted mt-0.5">Ver e editar perfis de clientes</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-inter text-sm font-semibold text-brand-title">Gerenciar Clientes</h3>
-                <p className="font-outfit text-xs text-brand-muted mt-0.5">Ver e editar perfis de clientes</p>
+            </Card>
+          </Link>
+          <Link href="/admin/trips">
+            <Card
+              padding="md"
+              className="hover:shadow-card hover:border-brand-gold/30 transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-brand-bg-secondary rounded-lg flex items-center justify-center">
+                  <Plane size={24} strokeWidth={1.5} className="text-brand-gold" />
+                </div>
+                <div>
+                  <h3 className="font-inter text-sm font-semibold text-brand-title">Gerenciar Viagens</h3>
+                  <p className="font-outfit text-xs text-brand-muted mt-0.5">Criar e editar itinerários</p>
+                </div>
               </div>
-            </div>
-          </Card>
-          <Card
-            padding="md"
-            className="hover:shadow-card hover:border-brand-gold/30 transition-all cursor-pointer"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-brand-bg-secondary rounded-lg flex items-center justify-center">
-                <Plane size={24} strokeWidth={1.5} className="text-brand-gold" />
-              </div>
-              <div>
-                <h3 className="font-inter text-sm font-semibold text-brand-title">Gerenciar Viagens</h3>
-                <p className="font-outfit text-xs text-brand-muted mt-0.5">Criar e editar itinerários</p>
-              </div>
-            </div>
-          </Card>
+            </Card>
+          </Link>
         </div>
       </div>
     </div>
