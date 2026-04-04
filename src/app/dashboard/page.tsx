@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Card from '@/components/ui/Card'
+import Image from 'next/image'
 import {
   Map,
   DollarSign,
@@ -14,6 +15,7 @@ import {
   Globe,
   BookOpen,
   ScrollText,
+  ChevronDown,
 } from 'lucide-react'
 
 const sections = [
@@ -53,79 +55,129 @@ export default async function DashboardPage() {
     .order('created_at', { ascending: false })
 
   return (
-    <div>
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="font-cormorant text-4xl font-semibold text-brand-title">
-          Olá, {firstName} ✨
-        </h1>
-        <p className="font-outfit text-brand-muted mt-1">
-          Bem-vindo(a) ao seu Caderno de Viagem
-        </p>
-      </div>
+    <>
+      {/* Hero Section */}
+      <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
+        {/* Background Image */}
+        <Image
+          src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80"
+          alt="Travel landscape"
+          fill
+          className="object-cover"
+          priority
+        />
 
-      {/* Viagens ativas */}
-      {trips && trips.length > 0 ? (
-        <div className="mb-10">
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/35 to-black/65 z-10" />
+
+        {/* Bottom fade to brand-bg */}
+        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#FAF6F3] to-transparent z-20" />
+
+        {/* Content */}
+        <div className="relative z-30 text-center flex flex-col items-center justify-center px-4">
+          <p className="font-cinzel text-white/90 text-sm tracking-[0.35em] uppercase mb-1">
+            ATTICA
+          </p>
+          <p className="font-cormorant italic text-white/70 text-sm tracking-wider mb-12">
+            Studio de Viagens
+          </p>
+
+          <h1 className="font-cinzel text-white text-4xl md:text-5xl lg:text-6xl font-semibold tracking-wide mb-4">
+            BEM VINDO(A)
+          </h1>
+          <p className="font-outfit text-white/80 text-lg md:text-xl mb-6">
+            Sua próxima viagem inicia aqui
+          </p>
+          <p className="font-outfit italic text-white/50 text-sm max-w-md leading-relaxed mb-16">
+            Planejamento exclusivo para uma experiência leve, organizada e memorável.
+          </p>
+
+          {/* Animated scroll arrow */}
+          <a
+            href="#dashboard-content"
+            className="animate-bounce-slow text-white/60 hover:text-white transition-colors"
+            aria-label="Scroll to content"
+          >
+            <ChevronDown size={32} strokeWidth={1.5} />
+          </a>
+        </div>
+      </section>
+
+      {/* Dashboard Content */}
+      <div id="dashboard-content" className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 scroll-mt-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="font-cormorant text-4xl font-semibold text-brand-title">
+            Olá, {firstName} ✨
+          </h1>
+          <p className="font-outfit text-brand-muted mt-1">
+            Bem-vindo(a) ao seu Caderno de Viagem
+          </p>
+        </div>
+
+        {/* Viagens ativas */}
+        {trips && trips.length > 0 ? (
+          <div className="mb-10">
+            <h2 className="font-cormorant text-2xl font-semibold text-brand-title mb-4">
+              Suas viagens
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {trips.map((trip) => (
+                <Card key={trip.id} padding="md" className="hover:shadow-card transition-shadow">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-cormorant text-xl font-semibold text-brand-title">
+                      {trip.title}
+                    </h3>
+                  </div>
+                  <p className="font-outfit text-sm text-brand-muted">{trip.destination}</p>
+                  {trip.start_date && (
+                    <p className="font-inter text-xs text-brand-muted mt-2">
+                      {new Date(trip.start_date).toLocaleDateString('pt-BR')}
+                      {trip.end_date && ` — ${new Date(trip.end_date).toLocaleDateString('pt-BR')}`}
+                    </p>
+                  )}
+                </Card>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <Card padding="lg" className="mb-10 text-center">
+            <div className="py-8">
+              <div className="w-16 h-16 bg-brand-bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+                <Map className="text-brand-gold" size={32} strokeWidth={1.5} />
+              </div>
+              <h3 className="font-cormorant text-2xl font-semibold text-brand-title mb-2">
+                Nenhuma viagem ainda
+              </h3>
+              <p className="font-outfit text-brand-muted text-sm">
+                Em breve sua consultora Attica irá preparar seu caderno de viagem personalizado.
+              </p>
+            </div>
+          </Card>
+        )}
+
+        {/* Grade de seções */}
+        <div>
           <h2 className="font-cormorant text-2xl font-semibold text-brand-title mb-4">
-            Suas viagens
+            Seu caderno de viagem
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {trips.map((trip) => (
-              <Card key={trip.id} padding="md" className="hover:shadow-card transition-shadow">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-cormorant text-xl font-semibold text-brand-title">
-                    {trip.title}
-                  </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            {sections.map(({ icon: Icon, label, desc, color, bg }) => (
+              <Card
+                key={label}
+                padding="sm"
+                className="flex flex-col items-center text-center hover:shadow-card hover:border-brand-gold/30 transition-all cursor-default"
+              >
+                <div className={`w-12 h-12 rounded-full ${bg} flex items-center justify-center mb-3 mt-1`}>
+                  <Icon size={24} strokeWidth={1.5} className={color} />
                 </div>
-                <p className="font-outfit text-sm text-brand-muted">{trip.destination}</p>
-                {trip.start_date && (
-                  <p className="font-inter text-xs text-brand-muted mt-2">
-                    {new Date(trip.start_date).toLocaleDateString('pt-BR')}
-                    {trip.end_date && ` — ${new Date(trip.end_date).toLocaleDateString('pt-BR')}`}
-                  </p>
-                )}
+                <p className="font-inter text-sm font-medium text-brand-title">{label}</p>
+                <p className="font-outfit text-xs text-brand-muted mt-1 leading-tight">{desc}</p>
               </Card>
             ))}
           </div>
         </div>
-      ) : (
-        <Card padding="lg" className="mb-10 text-center">
-          <div className="py-8">
-            <div className="w-16 h-16 bg-brand-bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
-              <Map className="text-brand-gold" size={32} strokeWidth={1.5} />
-            </div>
-            <h3 className="font-cormorant text-2xl font-semibold text-brand-title mb-2">
-              Nenhuma viagem ainda
-            </h3>
-            <p className="font-outfit text-brand-muted text-sm">
-              Em breve sua consultora Attica irá preparar seu caderno de viagem personalizado.
-            </p>
-          </div>
-        </Card>
-      )}
-
-      {/* Grade de seções */}
-      <div>
-        <h2 className="font-cormorant text-2xl font-semibold text-brand-title mb-4">
-          Seu caderno de viagem
-        </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-          {sections.map(({ icon: Icon, label, desc, color, bg }) => (
-            <Card
-              key={label}
-              padding="sm"
-              className="flex flex-col items-center text-center hover:shadow-card hover:border-brand-gold/30 transition-all cursor-default"
-            >
-              <div className={`w-12 h-12 rounded-full ${bg} flex items-center justify-center mb-3 mt-1`}>
-                <Icon size={24} strokeWidth={1.5} className={color} />
-              </div>
-              <p className="font-inter text-sm font-medium text-brand-title">{label}</p>
-              <p className="font-outfit text-xs text-brand-muted mt-1 leading-tight">{desc}</p>
-            </Card>
-          ))}
-        </div>
       </div>
-    </div>
+    </>
   )
 }
