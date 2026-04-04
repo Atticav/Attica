@@ -19,15 +19,15 @@ const typeConfig: Record<
   { icon: ReactNode; classes: string }
 > = {
   success: {
-    icon: <CheckCircle size={18} className="text-brand-success" />,
+    icon: <CheckCircle size={18} strokeWidth={1.5} className="text-brand-success" />,
     classes: 'border-brand-success/30 bg-white',
   },
   error: {
-    icon: <XCircle size={18} className="text-brand-error" />,
+    icon: <XCircle size={18} strokeWidth={1.5} className="text-brand-error" />,
     classes: 'border-brand-error/30 bg-white',
   },
   info: {
-    icon: <Info size={18} className="text-brand-gold" />,
+    icon: <Info size={18} strokeWidth={1.5} className="text-brand-gold" />,
     classes: 'border-brand-gold/30 bg-white',
   },
 }
@@ -66,7 +66,7 @@ export function Toast({
       )}
     >
       <span className="mt-0.5 flex-shrink-0">{config.icon}</span>
-      <p className="font-lora text-sm text-brand-text flex-1">{message}</p>
+      <p className="font-outfit text-sm text-brand-text flex-1">{message}</p>
       <button
         onClick={() => {
           setVisible(false)
@@ -74,7 +74,7 @@ export function Toast({
         }}
         className="flex-shrink-0 text-brand-muted hover:text-brand-text transition-colors"
       >
-        <X size={16} />
+        <X size={16} strokeWidth={1.5} />
       </button>
     </div>
   )

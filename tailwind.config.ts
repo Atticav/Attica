@@ -28,7 +28,7 @@ const config: Config = {
       fontFamily: {
         cormorant: ['var(--font-cormorant)', 'Cormorant Garamond', 'serif'],
         cinzel: ['var(--font-cinzel)', 'Cinzel', 'serif'],
-        lora: ['var(--font-lora)', 'Lora', 'serif'],
+        outfit: ['var(--font-outfit)', 'Outfit', 'sans-serif'],
         inter: ['var(--font-inter)', 'Inter', 'sans-serif'],
       },
       boxShadow: {

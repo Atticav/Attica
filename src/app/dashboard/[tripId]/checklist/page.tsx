@@ -18,13 +18,13 @@ import type { ReactNode } from 'react'
 
 function getSectionIcon(section: string): ReactNode {
   const lower = section.toLowerCase()
-  if (lower.includes('document') || lower.includes('documenta')) return <FileText size={16} />
-  if (lower.includes('saúde') || lower.includes('saude') || lower.includes('health')) return <Heart size={16} />
-  if (lower.includes('financ') || lower.includes('financeiro')) return <CreditCard size={16} />
-  if (lower.includes('bagagem') || lower.includes('baggage') || lower.includes('mala')) return <Briefcase size={16} />
-  if (lower.includes('tecnolog') || lower.includes('tech')) return <Smartphone size={16} />
-  if (lower.includes('casa') || lower.includes('home')) return <Home size={16} />
-  return <MoreHorizontal size={16} />
+  if (lower.includes('document') || lower.includes('documenta')) return <FileText size={16} strokeWidth={1.5} />
+  if (lower.includes('saúde') || lower.includes('saude') || lower.includes('health')) return <Heart size={16} strokeWidth={1.5} />
+  if (lower.includes('financ') || lower.includes('financeiro')) return <CreditCard size={16} strokeWidth={1.5} />
+  if (lower.includes('bagagem') || lower.includes('baggage') || lower.includes('mala')) return <Briefcase size={16} strokeWidth={1.5} />
+  if (lower.includes('tecnolog') || lower.includes('tech')) return <Smartphone size={16} strokeWidth={1.5} />
+  if (lower.includes('casa') || lower.includes('home')) return <Home size={16} strokeWidth={1.5} />
+  return <MoreHorizontal size={16} strokeWidth={1.5} />
 }
 
 interface NewTaskForm {
@@ -139,13 +139,13 @@ export default function ChecklistPage() {
             Checklist Pré-Viagem
           </h1>
           {totalCount > 0 && (
-            <p className="font-lora text-sm text-brand-muted">
+            <p className="font-outfit text-sm text-brand-muted">
               {completedCount} de {totalCount} tarefas concluídas ({progressValue}%)
             </p>
           )}
         </div>
         <Button onClick={() => setModalOpen(true)} size="sm">
-          <Plus size={16} />
+          <Plus size={16} strokeWidth={1.5} />
           Adicionar Tarefa
         </Button>
       </div>
@@ -162,11 +162,11 @@ export default function ChecklistPage() {
       {/* Empty state */}
       {items.length === 0 && (
         <Card className="text-center py-16">
-          <CheckSquare size={40} className="text-brand-muted mx-auto mb-3" />
+          <CheckSquare size={40} strokeWidth={1.5} className="text-brand-muted mx-auto mb-3" />
           <p className="font-cormorant text-xl text-brand-title mb-1">
             Nenhuma tarefa ainda
           </p>
-          <p className="font-lora text-sm text-brand-muted">
+          <p className="font-outfit text-sm text-brand-muted">
             Adicione tarefas de preparação para a sua viagem.
           </p>
         </Card>
@@ -226,7 +226,7 @@ export default function ChecklistPage() {
                     <div className="flex-1 min-w-0">
                       <p
                         className={cn(
-                          'font-lora text-sm text-brand-title',
+                          'font-outfit text-sm text-brand-title',
                           item.is_completed && 'line-through'
                         )}
                       >
@@ -239,7 +239,7 @@ export default function ChecklistPage() {
                       )}
                       {item.deadline && (
                         <div className="flex items-center gap-1 mt-1">
-                          <Calendar size={11} className="text-brand-muted" />
+                          <Calendar size={11} strokeWidth={1.5} className="text-brand-muted" />
                           <span className="font-inter text-xs text-brand-muted">
                             Prazo: {formatDateShort(item.deadline)}
                           </span>
@@ -272,7 +272,7 @@ export default function ChecklistPage() {
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               placeholder="Ex: Renovar passaporte"
               required
-              className="w-full rounded-lg border border-brand-border font-lora text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent placeholder:text-brand-muted"
+              className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent placeholder:text-brand-muted"
             />
           </div>
 
@@ -293,7 +293,7 @@ export default function ChecklistPage() {
                   : 'Ex: Documentação'
               }
               list="section-options"
-              className="w-full rounded-lg border border-brand-border font-lora text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent placeholder:text-brand-muted"
+              className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent placeholder:text-brand-muted"
             />
             <datalist id="section-options">
               {Array.from(new Set(items.map((i) => i.section))).map((s) => (
@@ -311,7 +311,7 @@ export default function ChecklistPage() {
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               rows={3}
               placeholder="Detalhes adicionais sobre esta tarefa..."
-              className="w-full rounded-lg border border-brand-border font-lora text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent placeholder:text-brand-muted resize-none"
+              className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent placeholder:text-brand-muted resize-none"
             />
           </div>
 

@@ -166,13 +166,13 @@ export default function PackingPage() {
             Mala Inteligente
           </h1>
           {totalCount > 0 && (
-            <p className="font-lora text-sm text-brand-muted">
+            <p className="font-outfit text-sm text-brand-muted">
               {packedCount} de {totalCount} itens prontos ({progressValue}%)
             </p>
           )}
         </div>
         <Button onClick={() => setModalOpen(true)} size="sm">
-          <Plus size={16} />
+          <Plus size={16} strokeWidth={1.5} />
           Adicionar Item
         </Button>
       </div>
@@ -213,11 +213,11 @@ export default function PackingPage() {
           {/* Items List */}
           {filteredItems.length === 0 ? (
             <Card className="text-center py-16">
-              <Luggage size={40} className="text-brand-muted mx-auto mb-3" />
+              <Luggage size={40} strokeWidth={1.5} className="text-brand-muted mx-auto mb-3" />
               <p className="font-cormorant text-xl text-brand-title mb-1">
                 Nenhum item encontrado
               </p>
-              <p className="font-lora text-sm text-brand-muted">
+              <p className="font-outfit text-sm text-brand-muted">
                 {activeFilter === 'all'
                   ? 'Adicione itens à sua mala clicando em "Adicionar Item".'
                   : 'Nenhum item nesta categoria.'}
@@ -252,7 +252,7 @@ export default function PackingPage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span
                           className={cn(
-                            'font-lora text-sm text-brand-title',
+                            'font-outfit text-sm text-brand-title',
                             item.is_packed && 'line-through opacity-50'
                           )}
                         >
@@ -291,13 +291,13 @@ export default function PackingPage() {
         <Card className="border border-brand-error/30">
           <div className="flex flex-col items-center text-center py-10 gap-4">
             <div className="p-3 bg-brand-error/10 rounded-full">
-              <AlertTriangle size={28} className="text-brand-error" />
+              <AlertTriangle size={28} strokeWidth={1.5} className="text-brand-error" />
             </div>
             <div>
               <p className="font-cormorant text-xl text-brand-title mb-1">
                 Sem restrições cadastradas
               </p>
-              <p className="font-lora text-sm text-brand-muted">
+              <p className="font-outfit text-sm text-brand-muted">
                 Nenhuma restrição cadastrada para este destino.
               </p>
             </div>
@@ -323,7 +323,7 @@ export default function PackingPage() {
               onChange={(e) => setForm((f) => ({ ...f, item_name: e.target.value }))}
               placeholder="Ex: Passaporte, Carregador..."
               required
-              className="w-full rounded-lg border border-brand-border font-lora text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent placeholder:text-brand-muted"
+              className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent placeholder:text-brand-muted"
             />
           </div>
 
@@ -332,7 +332,7 @@ export default function PackingPage() {
             <select
               value={form.category}
               onChange={(e) => setForm((f) => ({ ...f, category: e.target.value as PackingItemCategory }))}
-              className="w-full rounded-lg border border-brand-border font-lora text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent"
+              className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent"
             >
               {(Object.keys(CATEGORY_LABELS) as PackingItemCategory[]).map((cat) => (
                 <option key={cat} value={cat}>{CATEGORY_LABELS[cat]}</option>
@@ -347,7 +347,7 @@ export default function PackingPage() {
               min={1}
               value={form.quantity}
               onChange={(e) => setForm((f) => ({ ...f, quantity: parseInt(e.target.value) || 1 }))}
-              className="w-full rounded-lg border border-brand-border font-lora text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent"
+              className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent"
             />
           </div>
 
@@ -360,7 +360,7 @@ export default function PackingPage() {
               onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
               rows={2}
               placeholder="Observações adicionais..."
-              className="w-full rounded-lg border border-brand-border font-lora text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent placeholder:text-brand-muted resize-none"
+              className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent placeholder:text-brand-muted resize-none"
             />
           </div>
 
