@@ -37,11 +37,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ trip
   const { tripId, section } = await params
   const table = SECTION_TABLE_MAP[section]
   if (!table) return NextResponse.json({ error: 'Invalid section' }, { status: 400 })
-  const { data, error } = await supabase
+  const query = supabase
     .from(table)
     .select('*')
     .eq('trip_id', tripId)
-    .order('order_index', { ascending: true })
+
+  // order_index may not exist in all tables; fall back to created_at if so
+  const tablesWithOrder = ['itinerary_items', 'financial_items', 'documents', 'packing_items', 'checklist_items', 'strategic_sections', 'tutorials', 'gallery_items', 'restaurants', 'photography_tips', 'cultural_infos', 'vocabularies']
+  const { data, error } = tablesWithOrder.includes(table)
+    ? await query.order('order_index', { ascending: true })
+    : await query.order('created_at', { ascending: true })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)
 }

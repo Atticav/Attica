@@ -57,12 +57,12 @@ function getDisplayFields(section: string, item: Record<string, unknown>): { lab
       break
     case 'strategic':
       if (item.title) fields.push({ label: 'Título', value: String(item.title) })
-      if (item.content) fields.push({ label: 'Conteúdo', value: String(item.content).slice(0, 80) + '...' })
+      if (item.content) fields.push({ label: 'Conteúdo', value: String(item.content).length > 80 ? String(item.content).slice(0, 80) + '...' : String(item.content) })
       break
     case 'guide':
       if (item.title) fields.push({ label: 'Título', value: String(item.title) })
       if (item.type) fields.push({ label: 'Tipo', value: String(item.type) })
-      if (item.url) fields.push({ label: 'URL', value: String(item.url).slice(0, 40) + '...' })
+      if (item.url) fields.push({ label: 'URL', value: String(item.url).length > 40 ? String(item.url).slice(0, 40) + '...' : String(item.url) })
       break
     case 'gallery':
       if (item.title) fields.push({ label: 'Título', value: String(item.title || '—') })
@@ -95,7 +95,7 @@ function getDisplayFields(section: string, item: Record<string, unknown>): { lab
     default:
       Object.entries(item).forEach(([key, value]) => {
         if (!['id', 'trip_id', 'created_at', 'updated_at', 'order_index'].includes(key) && value !== null && value !== undefined) {
-          fields.push({ label: key, value: String(value).slice(0, 50) })
+          fields.push({ label: key, value: String(value).length > 50 ? String(value).slice(0, 50) + '...' : String(value) })
         }
       })
   }
