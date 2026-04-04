@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import Card from '@/components/ui/Card'
 import Image from 'next/image'
+import Link from 'next/link'
+import { cn } from '@/lib/utils'
 import {
   Map,
   DollarSign,
@@ -26,19 +28,19 @@ import {
 import { getDestinationInfo } from '@/lib/destination-data'
 
 const sections = [
-  { icon: Map, label: 'Roteiro', desc: 'Dia a dia da sua viagem' },
-  { icon: DollarSign, label: 'Financeiro', desc: 'Controle de gastos e pagamentos' },
-  { icon: FileText, label: 'Documentos', desc: 'Passaportes, vistos e mais' },
-  { icon: Luggage, label: 'Mala Inteligente', desc: 'Lista de itens para empacotar' },
-  { icon: CheckSquare, label: 'Checklist', desc: 'Tarefas antes da viagem' },
-  { icon: Compass, label: 'Central Estratégica', desc: 'Links e informações essenciais' },
-  { icon: PlayCircle, label: 'Guia Attica', desc: 'Vídeos e tutoriais exclusivos' },
-  { icon: ImageIcon, label: 'Galeria', desc: 'Fotos e vídeos do destino' },
-  { icon: UtensilsCrossed, label: 'Restaurantes', desc: 'Indicações gastronômicas' },
-  { icon: Camera, label: 'Fotografia', desc: 'Dicas para fotos incríveis' },
-  { icon: Globe, label: 'Cultura', desc: 'Costumes e informações locais' },
-  { icon: BookOpen, label: 'Vocabulário', desc: 'Palavras e frases essenciais' },
-  { icon: ScrollText, label: 'Contrato', desc: 'Documentos e acordos' },
+  { icon: Map, label: 'Roteiro', desc: 'Dia a dia da sua viagem', slug: 'itinerary' },
+  { icon: DollarSign, label: 'Financeiro', desc: 'Controle de gastos e pagamentos', slug: 'financial' },
+  { icon: FileText, label: 'Documentos', desc: 'Passaportes, vistos e mais', slug: 'documents' },
+  { icon: Luggage, label: 'Mala Inteligente', desc: 'Lista de itens para empacotar', slug: 'packing' },
+  { icon: CheckSquare, label: 'Checklist', desc: 'Tarefas antes da viagem', slug: 'checklist' },
+  { icon: Compass, label: 'Central Estratégica', desc: 'Links e informações essenciais', slug: 'strategic' },
+  { icon: PlayCircle, label: 'Guia Attica', desc: 'Vídeos e tutoriais exclusivos', slug: 'guide' },
+  { icon: ImageIcon, label: 'Galeria', desc: 'Fotos e vídeos do destino', slug: 'gallery' },
+  { icon: UtensilsCrossed, label: 'Restaurantes', desc: 'Indicações gastronômicas', slug: 'restaurants' },
+  { icon: Camera, label: 'Fotografia', desc: 'Dicas para fotos incríveis', slug: 'photography' },
+  { icon: Globe, label: 'Cultura', desc: 'Costumes e informações locais', slug: 'culture' },
+  { icon: BookOpen, label: 'Vocabulário', desc: 'Palavras e frases essenciais', slug: 'vocabulary' },
+  { icon: ScrollText, label: 'Contrato', desc: 'Documentos e acordos', slug: 'contract' },
 ]
 
 export default async function DashboardPage() {
@@ -138,20 +140,22 @@ export default async function DashboardPage() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {trips.map((trip) => (
-                <Card key={trip.id} padding="md" className="hover:shadow-card transition-shadow">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-cormorant text-xl font-semibold text-brand-title">
-                      {trip.title}
-                    </h3>
-                  </div>
-                  <p className="font-outfit text-sm text-brand-muted">{trip.destination}</p>
-                  {trip.start_date && (
-                    <p className="font-inter text-xs text-brand-muted mt-2">
-                      {new Date(trip.start_date).toLocaleDateString('pt-BR')}
-                      {trip.end_date && ` — ${new Date(trip.end_date).toLocaleDateString('pt-BR')}`}
-                    </p>
-                  )}
-                </Card>
+                <Link key={trip.id} href={`/dashboard/${trip.id}/itinerary`}>
+                  <Card padding="md" className="hover:shadow-card hover:border-brand-gold/30 transition-all cursor-pointer">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-cormorant text-xl font-semibold text-brand-title">
+                        {trip.title}
+                      </h3>
+                    </div>
+                    <p className="font-outfit text-sm text-brand-muted">{trip.destination}</p>
+                    {trip.start_date && (
+                      <p className="font-inter text-xs text-brand-muted mt-2">
+                        {new Date(trip.start_date).toLocaleDateString('pt-BR')}
+                        {trip.end_date && ` — ${new Date(trip.end_date).toLocaleDateString('pt-BR')}`}
+                      </p>
+                    )}
+                  </Card>
+                </Link>
               ))}
             </div>
           </div>
@@ -256,19 +260,32 @@ export default async function DashboardPage() {
             Seu caderno de viagem
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {sections.map(({ icon: Icon, label, desc }) => (
-              <Card
-                key={label}
-                padding="sm"
-                className="flex flex-col items-center text-center hover:shadow-card hover:border-brand-gold/30 transition-all cursor-default"
-              >
-                <div className="w-12 h-12 rounded-full bg-brand-bg-secondary flex items-center justify-center mb-3 mt-1">
-                  <Icon size={22} strokeWidth={1.3} className="text-brand-gold" />
-                </div>
-                <p className="font-inter text-sm font-medium text-brand-title">{label}</p>
-                <p className="font-outfit text-xs text-brand-muted mt-1 leading-tight">{desc}</p>
-              </Card>
-            ))}
+            {sections.map(({ icon: Icon, label, desc, slug }) => {
+              const href = activeTrip ? `/dashboard/${activeTrip.id}/${slug}` : null
+
+              const cardContent = (
+                <Card
+                  padding="sm"
+                  className={cn(
+                    "flex flex-col items-center text-center transition-all",
+                    href
+                      ? "hover:shadow-card hover:border-brand-gold/30 cursor-pointer"
+                      : "opacity-60 cursor-not-allowed"
+                  )}
+                >
+                  <div className="w-12 h-12 rounded-full bg-brand-bg-secondary flex items-center justify-center mb-3 mt-1">
+                    <Icon size={22} strokeWidth={1.3} className="text-brand-gold" />
+                  </div>
+                  <p className="font-inter text-sm font-medium text-brand-title">{label}</p>
+                  <p className="font-outfit text-xs text-brand-muted mt-1 leading-tight">{desc}</p>
+                </Card>
+              )
+
+              if (href) {
+                return <Link key={label} href={href}>{cardContent}</Link>
+              }
+              return <div key={label}>{cardContent}</div>
+            })}
           </div>
         </div>
       </div>
