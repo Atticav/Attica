@@ -46,7 +46,7 @@ export default function LoginPage() {
           {/* Título */}
           <div className="text-center mb-8">
             <h1 className="font-cormorant text-3xl font-semibold text-brand-title">
-              Bem-vinda de volta
+              Bem-vindo(a) de volta
             </h1>
             <p className="font-outfit text-brand-muted mt-2 text-sm">
               Acesse seu Caderno de Viagem
