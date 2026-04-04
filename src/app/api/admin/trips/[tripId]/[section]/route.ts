@@ -17,6 +17,9 @@ const SECTION_TABLE_MAP: Record<string, string> = {
   contract: 'contracts',
 }
 
+// Tables that do not have an order_index column — fall back to created_at ordering
+const TABLES_WITHOUT_ORDER = new Set(['contracts'])
+
 async function verifyAdmin() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -42,11 +45,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ trip
     .select('*')
     .eq('trip_id', tripId)
 
-  // order_index may not exist in all tables; fall back to created_at if so
-  const tablesWithOrder = ['itinerary_items', 'financial_items', 'documents', 'packing_items', 'checklist_items', 'strategic_sections', 'tutorials', 'gallery_items', 'restaurants', 'photography_tips', 'cultural_infos', 'vocabularies']
-  const { data, error } = tablesWithOrder.includes(table)
-    ? await query.order('order_index', { ascending: true })
-    : await query.order('created_at', { ascending: true })
+  // order_index may not exist in all tables; fall back to created_at for those
+  const { data, error } = TABLES_WITHOUT_ORDER.has(table)
+    ? await query.order('created_at', { ascending: true })
+    : await query.order('order_index', { ascending: true })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)
 }
