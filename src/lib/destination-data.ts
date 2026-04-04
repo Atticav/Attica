@@ -12,7 +12,17 @@ export interface DestinationInfo {
   travelStyle?: string
 }
 
-// Static data — admin can extend this or move to Supabase later
+/** Normalize a string by lowercasing and stripping diacritics/accents. */
+function normalize(str: string): string {
+  return str
+    .toLowerCase()
+    .trim()
+    .normalize('NFD')
+    .replace(/\p{Mn}/gu, '')
+}
+
+// Static data — admin can extend this or move to Supabase later.
+// Keys are stored pre-normalized (no accents, lowercase).
 const DESTINATIONS: Record<string, DestinationInfo> = {
   'peru': {
     destination: 'Peru',
@@ -26,17 +36,6 @@ const DESTINATIONS: Record<string, DestinationInfo> = {
     travelStyle: 'Aventura',
   },
   'italia': {
-    destination: 'Itália',
-    country: 'Itália',
-    language: 'Italiano',
-    currency: 'Euro',
-    currencySymbol: 'EUR',
-    voltage: '230v',
-    timezoneOffset: '+4 horas do Brasil',
-    bestSeason: 'Abril a Outubro',
-    travelStyle: 'Cultural',
-  },
-  'itália': {
     destination: 'Itália',
     country: 'Itália',
     language: 'Italiano',
@@ -80,17 +79,6 @@ const DESTINATIONS: Record<string, DestinationInfo> = {
     bestSeason: 'Abril a Outubro',
     travelStyle: 'Cultural',
   },
-  'frança': {
-    destination: 'França',
-    country: 'França',
-    language: 'Francês',
-    currency: 'Euro',
-    currencySymbol: 'EUR',
-    voltage: '230v',
-    timezoneOffset: '+4 horas do Brasil',
-    bestSeason: 'Abril a Outubro',
-    travelStyle: 'Cultural',
-  },
   'franca': {
     destination: 'França',
     country: 'França',
@@ -100,17 +88,6 @@ const DESTINATIONS: Record<string, DestinationInfo> = {
     voltage: '230v',
     timezoneOffset: '+4 horas do Brasil',
     bestSeason: 'Abril a Outubro',
-    travelStyle: 'Cultural',
-  },
-  'japão': {
-    destination: 'Japão',
-    country: 'Japão',
-    language: 'Japonês',
-    currency: 'Iene',
-    currencySymbol: 'JPY',
-    voltage: '100v',
-    timezoneOffset: '+12 horas do Brasil',
-    bestSeason: 'Março a Maio / Setembro a Novembro',
     travelStyle: 'Cultural',
   },
   'japao': {
@@ -134,17 +111,6 @@ const DESTINATIONS: Record<string, DestinationInfo> = {
     timezoneOffset: 'Mesmo horário do Brasil',
     bestSeason: 'Setembro a Novembro / Março a Maio',
     travelStyle: 'Cultural',
-  },
-  'grécia': {
-    destination: 'Grécia',
-    country: 'Grécia',
-    language: 'Grego',
-    currency: 'Euro',
-    currencySymbol: 'EUR',
-    voltage: '230v',
-    timezoneOffset: '+5 horas do Brasil',
-    bestSeason: 'Maio a Outubro',
-    travelStyle: 'Descanso',
   },
   'grecia': {
     destination: 'Grécia',
@@ -215,14 +181,14 @@ const DESTINATIONS: Record<string, DestinationInfo> = {
 }
 
 export function getDestinationInfo(destination: string, country?: string): DestinationInfo | null {
-  const key = destination.toLowerCase().trim()
+  const key = normalize(destination)
 
   // Try exact match
   if (DESTINATIONS[key]) return DESTINATIONS[key]
 
   // Try country match
   if (country) {
-    const countryKey = country.toLowerCase().trim()
+    const countryKey = normalize(country)
     if (DESTINATIONS[countryKey]) return DESTINATIONS[countryKey]
   }
 
