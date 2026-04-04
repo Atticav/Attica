@@ -37,25 +37,25 @@ interface NavItem {
 function buildNavItems(tripId: string): NavItem[] {
   const base = `/dashboard/${tripId}`
   return [
-    { href: `/dashboard`, label: 'Início', icon: <LayoutDashboard size={18} /> },
-    { href: `${base}/itinerary`, label: 'Roteiro', icon: <Map size={18} /> },
-    { href: `${base}/financial`, label: 'Financeiro', icon: <DollarSign size={18} /> },
-    { href: `${base}/documents`, label: 'Documentos', icon: <FileText size={18} /> },
-    { href: `${base}/packing`, label: 'Mala Inteligente', icon: <Luggage size={18} /> },
-    { href: `${base}/checklist`, label: 'Checklist', icon: <CheckSquare size={18} /> },
-    { href: `${base}/strategic`, label: 'Central Estratégica', icon: <Compass size={18} /> },
-    { href: `${base}/guide`, label: 'Guia Attica', icon: <PlayCircle size={18} /> },
-    { href: `${base}/gallery`, label: 'Galeria', icon: <ImageIcon size={18} /> },
-    { href: `${base}/restaurants`, label: 'Restaurantes', icon: <UtensilsCrossed size={18} /> },
-    { href: `${base}/photography`, label: 'Fotografia', icon: <Camera size={18} /> },
-    { href: `${base}/culture`, label: 'Cultura', icon: <Globe size={18} /> },
-    { href: `${base}/vocabulary`, label: 'Vocabulário', icon: <BookOpen size={18} /> },
-    { href: `${base}/contract`, label: 'Contrato', icon: <ScrollText size={18} /> },
+    { href: `/dashboard`, label: 'Início', icon: <LayoutDashboard size={18} strokeWidth={1.5} /> },
+    { href: `${base}/itinerary`, label: 'Roteiro', icon: <Map size={18} strokeWidth={1.5} /> },
+    { href: `${base}/financial`, label: 'Financeiro', icon: <DollarSign size={18} strokeWidth={1.5} /> },
+    { href: `${base}/documents`, label: 'Documentos', icon: <FileText size={18} strokeWidth={1.5} /> },
+    { href: `${base}/packing`, label: 'Mala Inteligente', icon: <Luggage size={18} strokeWidth={1.5} /> },
+    { href: `${base}/checklist`, label: 'Checklist', icon: <CheckSquare size={18} strokeWidth={1.5} /> },
+    { href: `${base}/strategic`, label: 'Central Estratégica', icon: <Compass size={18} strokeWidth={1.5} /> },
+    { href: `${base}/guide`, label: 'Guia Attica', icon: <PlayCircle size={18} strokeWidth={1.5} /> },
+    { href: `${base}/gallery`, label: 'Galeria', icon: <ImageIcon size={18} strokeWidth={1.5} /> },
+    { href: `${base}/restaurants`, label: 'Restaurantes', icon: <UtensilsCrossed size={18} strokeWidth={1.5} /> },
+    { href: `${base}/photography`, label: 'Fotografia', icon: <Camera size={18} strokeWidth={1.5} /> },
+    { href: `${base}/culture`, label: 'Cultura', icon: <Globe size={18} strokeWidth={1.5} /> },
+    { href: `${base}/vocabulary`, label: 'Vocabulário', icon: <BookOpen size={18} strokeWidth={1.5} /> },
+    { href: `${base}/contract`, label: 'Contrato', icon: <ScrollText size={18} strokeWidth={1.5} /> },
   ]
 }
 
 const dashboardOnlyNav: NavItem[] = [
-  { href: `/dashboard`, label: 'Início', icon: <LayoutDashboard size={18} /> },
+  { href: `/dashboard`, label: 'Início', icon: <LayoutDashboard size={18} strokeWidth={1.5} /> },
 ]
 
 interface ClientSidebarProps {
@@ -108,12 +108,13 @@ export default function ClientSidebar({
           >
             <div className="text-left min-w-0">
               <p className="font-inter text-xs text-brand-muted mb-0.5">Viagem atual</p>
-              <p className="font-lora text-sm text-brand-title font-medium truncate">
+              <p className="font-outfit text-sm text-brand-title font-medium truncate">
                 {currentTrip?.title ?? 'Selecione uma viagem'}
               </p>
             </div>
             <ChevronDown
               size={16}
+              strokeWidth={1.5}
               className={cn(
                 'text-brand-muted flex-shrink-0 ml-2 transition-transform',
                 tripDropdownOpen && 'rotate-180'
@@ -132,7 +133,7 @@ export default function ClientSidebar({
                     setMobileOpen(false)
                   }}
                   className={cn(
-                    'w-full text-left px-4 py-2.5 font-lora text-sm transition-colors',
+                    'w-full text-left px-4 py-2.5 font-outfit text-sm transition-colors',
                     trip.id === effectiveTripId
                       ? 'bg-brand-hover text-brand-gold-dark font-medium'
                       : 'text-brand-text hover:bg-brand-bg'
@@ -196,7 +197,7 @@ export default function ClientSidebar({
             rounded-lg transition-all
           "
         >
-          <LogOut size={16} />
+          <LogOut size={16} strokeWidth={1.5} />
           Sair
         </button>
       </div>
@@ -216,7 +217,7 @@ export default function ClientSidebar({
           onClick={() => setMobileOpen(!mobileOpen)}
           className="p-2.5 bg-white rounded-lg shadow-soft border border-brand-border text-brand-text"
         >
-          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          {mobileOpen ? <X size={20} strokeWidth={1.5} /> : <Menu size={20} strokeWidth={1.5} />}
         </button>
       </div>
 

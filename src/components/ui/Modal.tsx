@@ -68,7 +68,7 @@ export default function Modal({
               onClick={onClose}
               className="p-1.5 rounded-lg text-brand-muted hover:text-brand-text hover:bg-brand-hover transition-all"
             >
-              <X size={18} />
+              <X size={18} strokeWidth={1.5} />
             </button>
           </div>
         )}
@@ -79,7 +79,7 @@ export default function Modal({
             onClick={onClose}
             className="absolute top-4 right-4 p-1.5 rounded-lg text-brand-muted hover:text-brand-text hover:bg-brand-hover transition-all z-10"
           >
-            <X size={18} />
+            <X size={18} strokeWidth={1.5} />
           </button>
         )}
 

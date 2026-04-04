@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cinzel:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cinzel:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,7 +7,7 @@
 :root {
   --font-cormorant: 'Cormorant Garamond', serif;
   --font-cinzel: 'Cinzel', serif;
-  --font-lora: 'Lora', serif;
+  --font-outfit: 'Outfit', sans-serif;
   --font-inter: 'Inter', sans-serif;
 
   --color-bg: #FAF6F3;
@@ -36,7 +36,7 @@
   body {
     background-color: #FAF6F3;
     color: #4A4A4A;
-    font-family: 'Lora', serif;
+    font-family: 'Outfit', sans-serif;
     font-size: 16px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
@@ -96,8 +96,8 @@
     font-family: var(--font-cinzel);
   }
 
-  .font-lora {
-    font-family: var(--font-lora);
+  .font-outfit {
+    font-family: var(--font-outfit);
   }
 
   .font-inter {

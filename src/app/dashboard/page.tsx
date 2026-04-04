@@ -59,8 +59,8 @@ export default async function DashboardPage() {
         <h1 className="font-cormorant text-4xl font-semibold text-brand-title">
           Olá, {firstName} ✨
         </h1>
-        <p className="font-lora text-brand-muted mt-1">
-          Bem-vinda ao seu Caderno de Viagem
+        <p className="font-outfit text-brand-muted mt-1">
+          Bem-vindo(a) ao seu Caderno de Viagem
         </p>
       </div>
 
@@ -78,7 +78,7 @@ export default async function DashboardPage() {
                     {trip.title}
                   </h3>
                 </div>
-                <p className="font-lora text-sm text-brand-muted">{trip.destination}</p>
+                <p className="font-outfit text-sm text-brand-muted">{trip.destination}</p>
                 {trip.start_date && (
                   <p className="font-inter text-xs text-brand-muted mt-2">
                     {new Date(trip.start_date).toLocaleDateString('pt-BR')}
@@ -93,12 +93,12 @@ export default async function DashboardPage() {
         <Card padding="lg" className="mb-10 text-center">
           <div className="py-8">
             <div className="w-16 h-16 bg-brand-bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
-              <Map className="text-brand-gold" size={32} />
+              <Map className="text-brand-gold" size={32} strokeWidth={1.5} />
             </div>
             <h3 className="font-cormorant text-2xl font-semibold text-brand-title mb-2">
               Nenhuma viagem ainda
             </h3>
-            <p className="font-lora text-brand-muted text-sm">
+            <p className="font-outfit text-brand-muted text-sm">
               Em breve sua consultora Attica irá preparar seu caderno de viagem personalizado.
             </p>
           </div>
@@ -117,9 +117,9 @@ export default async function DashboardPage() {
               padding="sm"
               className="flex flex-col items-center text-center hover:shadow-card hover:border-brand-gold/30 transition-all cursor-default"
             >
-              <Icon size={28} className={color + ' mb-2 mt-1'} />
+              <Icon size={28} strokeWidth={1.5} className={color + ' mb-2 mt-1'} />
               <p className="font-inter text-sm font-medium text-brand-title">{label}</p>
-              <p className="font-lora text-xs text-brand-muted mt-1 leading-tight">{desc}</p>
+              <p className="font-outfit text-xs text-brand-muted mt-1 leading-tight">{desc}</p>
             </Card>
           ))}
         </div>

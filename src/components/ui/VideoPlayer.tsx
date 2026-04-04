@@ -84,7 +84,7 @@ export default function VideoPlayer({ url, type, title, className }: VideoPlayer
       )}
     >
       <div className="p-4 bg-white rounded-full shadow-soft">
-        <ExternalLink size={32} className="text-brand-gold" />
+        <ExternalLink size={32} strokeWidth={1.5} className="text-brand-gold" />
       </div>
       {title && (
         <p className="font-cormorant text-xl text-brand-title text-center">{title}</p>
@@ -95,7 +95,7 @@ export default function VideoPlayer({ url, type, title, className }: VideoPlayer
         rel="noopener noreferrer"
         className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-gold text-white font-inter text-sm font-medium rounded-lg hover:bg-brand-gold-dark transition-colors shadow-gold"
       >
-        <ExternalLink size={14} />
+        <ExternalLink size={14} strokeWidth={1.5} />
         Abrir Link
       </a>
       <p className="font-inter text-xs text-brand-muted break-all text-center max-w-xs">{url}</p>

@@ -31,9 +31,9 @@ function ThumbnailPlaceholder({ type }: { type: TutorialType }) {
   return (
     <div className="w-full h-40 bg-brand-bg-secondary rounded-t-brand flex items-center justify-center">
       {type === 'pdf' ? (
-        <FileText size={36} className="text-brand-muted" />
+        <FileText size={36} strokeWidth={1.5} className="text-brand-muted" />
       ) : (
-        <PlayCircle size={36} className="text-brand-muted" />
+        <PlayCircle size={36} strokeWidth={1.5} className="text-brand-muted" />
       )}
     </div>
   )
@@ -88,7 +88,7 @@ export default function GuidePage() {
         <h1 className="font-cormorant text-3xl font-semibold text-brand-title">
           Guia Attica
         </h1>
-        <p className="font-lora text-sm text-brand-muted mt-1">
+        <p className="font-outfit text-sm text-brand-muted mt-1">
           Tutoriais e vídeos para sua viagem
         </p>
       </div>
@@ -114,11 +114,11 @@ export default function GuidePage() {
       {/* Empty state */}
       {filteredTutorials.length === 0 ? (
         <Card className="text-center py-16">
-          <BookOpen size={40} className="text-brand-muted mx-auto mb-3" />
+          <BookOpen size={40} strokeWidth={1.5} className="text-brand-muted mx-auto mb-3" />
           <p className="font-cormorant text-xl text-brand-title mb-1">
             Nenhum tutorial disponível para esta viagem
           </p>
-          <p className="font-lora text-sm text-brand-muted">
+          <p className="font-outfit text-sm text-brand-muted">
             Os tutoriais e guias serão adicionados pela equipe Attica.
           </p>
         </Card>
@@ -148,14 +148,14 @@ export default function GuidePage() {
                 </h2>
 
                 {tutorial.description && (
-                  <p className="font-lora text-sm text-brand-muted line-clamp-2">
+                  <p className="font-outfit text-sm text-brand-muted line-clamp-2">
                     {tutorial.description}
                   </p>
                 )}
 
                 {tutorial.duration_minutes && (
                   <div className="flex items-center gap-1 text-brand-muted">
-                    <Clock size={13} />
+                    <Clock size={13} strokeWidth={1.5} />
                     <span className="font-inter text-xs">{tutorial.duration_minutes} min</span>
                   </div>
                 )}

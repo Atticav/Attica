@@ -17,10 +17,10 @@ import { createClient } from '@/lib/supabase/client'
 import Logo from './Logo'
 
 const navItems = [
-  { href: '/admin', label: 'Painel', icon: <LayoutDashboard size={18} /> },
-  { href: '/admin/clients', label: 'Clientes', icon: <Users size={18} /> },
-  { href: '/admin/trips', label: 'Viagens', icon: <Plane size={18} /> },
-  { href: '/admin/settings', label: 'Configurações', icon: <Settings size={18} /> },
+  { href: '/admin', label: 'Painel', icon: <LayoutDashboard size={18} strokeWidth={1.5} /> },
+  { href: '/admin/clients', label: 'Clientes', icon: <Users size={18} strokeWidth={1.5} /> },
+  { href: '/admin/trips', label: 'Viagens', icon: <Plane size={18} strokeWidth={1.5} /> },
+  { href: '/admin/settings', label: 'Configurações', icon: <Settings size={18} strokeWidth={1.5} /> },
 ]
 
 interface AdminSidebarProps {
@@ -96,7 +96,7 @@ export default function AdminSidebar({ userEmail }: AdminSidebarProps) {
             rounded-lg transition-all
           "
         >
-          <LogOut size={16} />
+          <LogOut size={16} strokeWidth={1.5} />
           Sair
         </button>
       </div>
@@ -116,7 +116,7 @@ export default function AdminSidebar({ userEmail }: AdminSidebarProps) {
           onClick={() => setMobileOpen(!mobileOpen)}
           className="p-2.5 bg-white rounded-lg shadow-soft border border-brand-border text-brand-text"
         >
-          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          {mobileOpen ? <X size={20} strokeWidth={1.5} /> : <Menu size={20} strokeWidth={1.5} />}
         </button>
       </div>
 

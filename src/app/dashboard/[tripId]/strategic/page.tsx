@@ -13,13 +13,13 @@ import type { ReactNode } from 'react'
 
 function getSectionIcon(title: string): ReactNode {
   const lower = title.toLowerCase()
-  if (lower.includes('chip') || lower.includes('sim') || lower.includes('celular')) return <Smartphone size={18} />
-  if (lower.includes('banco') || lower.includes('bank') || lower.includes('atm') || lower.includes('caixa')) return <Landmark size={18} />
-  if (lower.includes('seguro') || lower.includes('insurance')) return <Shield size={18} />
-  if (lower.includes('carro') || lower.includes('car') || lower.includes('aluguel')) return <Car size={18} />
-  if (lower.includes('bolsa') || lower.includes('mochila') || lower.includes('bag')) return <ShoppingBag size={18} />
-  if (lower.includes('essencial') || lower.includes('essential')) return <Package size={18} />
-  return <Info size={18} />
+  if (lower.includes('chip') || lower.includes('sim') || lower.includes('celular')) return <Smartphone size={18} strokeWidth={1.5} />
+  if (lower.includes('banco') || lower.includes('bank') || lower.includes('atm') || lower.includes('caixa')) return <Landmark size={18} strokeWidth={1.5} />
+  if (lower.includes('seguro') || lower.includes('insurance')) return <Shield size={18} strokeWidth={1.5} />
+  if (lower.includes('carro') || lower.includes('car') || lower.includes('aluguel')) return <Car size={18} strokeWidth={1.5} />
+  if (lower.includes('bolsa') || lower.includes('mochila') || lower.includes('bag')) return <ShoppingBag size={18} strokeWidth={1.5} />
+  if (lower.includes('essencial') || lower.includes('essential')) return <Package size={18} strokeWidth={1.5} />
+  return <Info size={18} strokeWidth={1.5} />
 }
 
 export default function StrategicPage() {
@@ -83,7 +83,7 @@ export default function StrategicPage() {
         <div className="space-y-4">
           {section.content && (
             <div className="bg-brand-bg-secondary border-l-4 border-brand-gold rounded p-4">
-              <p className="font-lora text-sm text-brand-text whitespace-pre-wrap leading-relaxed">
+              <p className="font-outfit text-sm text-brand-text whitespace-pre-wrap leading-relaxed">
                 {section.content}
               </p>
             </div>
@@ -103,7 +103,7 @@ export default function StrategicPage() {
                   className="flex items-start gap-3 bg-white border border-brand-border rounded-lg px-4 py-3 hover:border-brand-gold hover:shadow-soft transition-all cursor-pointer group"
                 >
                   <ExternalLink
-                    size={16}
+                    size={16} strokeWidth={1.5}
                     className="text-brand-muted group-hover:text-brand-gold flex-shrink-0 mt-0.5 transition-colors"
                   />
                   <div className="min-w-0">
@@ -111,7 +111,7 @@ export default function StrategicPage() {
                       {link.title}
                     </p>
                     {link.description && (
-                      <p className="font-lora text-xs text-brand-muted mt-0.5 line-clamp-2">
+                      <p className="font-outfit text-xs text-brand-muted mt-0.5 line-clamp-2">
                         {link.description}
                       </p>
                     )}
@@ -132,7 +132,7 @@ export default function StrategicPage() {
         <h1 className="font-cormorant text-3xl font-semibold text-brand-title">
           Central Estratégica
         </h1>
-        <p className="font-lora text-sm text-brand-muted mt-1">
+        <p className="font-outfit text-sm text-brand-muted mt-1">
           Dicas e informações essenciais para sua viagem
         </p>
       </div>
@@ -140,11 +140,11 @@ export default function StrategicPage() {
       {/* Empty state */}
       {sections.length === 0 ? (
         <Card className="text-center py-16">
-          <Compass size={40} className="text-brand-muted mx-auto mb-3" />
+          <Compass size={40} strokeWidth={1.5} className="text-brand-muted mx-auto mb-3" />
           <p className="font-cormorant text-xl text-brand-title mb-1">
             Nenhuma informação estratégica cadastrada
           </p>
-          <p className="font-lora text-sm text-brand-muted">
+          <p className="font-outfit text-sm text-brand-muted">
             As dicas estratégicas para sua viagem aparecerão aqui.
           </p>
         </Card>

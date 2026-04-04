@@ -49,7 +49,7 @@ export default function ResetPasswordPage() {
               <h2 className="font-cormorant text-2xl font-semibold text-brand-title mb-2">
                 E-mail enviado!
               </h2>
-              <p className="font-lora text-brand-muted text-sm leading-relaxed">
+              <p className="font-outfit text-brand-muted text-sm leading-relaxed">
                 Enviamos as instruções para redefinir sua senha para{' '}
                 <strong className="text-brand-text">{email}</strong>.
                 Verifique sua caixa de entrada e spam.
@@ -67,7 +67,7 @@ export default function ResetPasswordPage() {
                 <h1 className="font-cormorant text-3xl font-semibold text-brand-title">
                   Recuperar senha
                 </h1>
-                <p className="font-lora text-brand-muted mt-2 text-sm">
+                <p className="font-outfit text-brand-muted mt-2 text-sm">
                   Informe seu e-mail para receber as instruções
                 </p>
               </div>
@@ -89,7 +89,7 @@ export default function ResetPasswordPage() {
                     placeholder="seu@email.com"
                     className="
                       w-full px-4 py-3 rounded-lg border border-brand-border
-                      bg-brand-bg font-lora text-brand-text text-sm
+                      bg-brand-bg font-outfit text-brand-text text-sm
                       placeholder:text-brand-muted
                       focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent
                       transition-all duration-200

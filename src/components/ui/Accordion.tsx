@@ -45,7 +45,7 @@ function AccordionItemComponent({ item, isOpen, onToggle }: AccordionItemCompone
           {item.title}
         </span>
         <ChevronDown
-          size={16}
+          size={16} strokeWidth={1.5}
           className={cn(
             'text-brand-muted flex-shrink-0 transition-transform duration-200',
             isOpen && 'rotate-180'
