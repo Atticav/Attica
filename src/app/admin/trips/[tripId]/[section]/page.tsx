@@ -6,7 +6,7 @@ import Card from '@/components/ui/Card'
 import Modal from '@/components/ui/Modal'
 import Input from '@/components/ui/Input'
 import { ToastContainer } from '@/components/ui/Toast'
-import { ArrowLeft, Plus, Edit2, Trash2 } from 'lucide-react'
+import { ArrowLeft, Plus, Edit2, Trash2, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 
 const SECTION_LABELS: Record<string, string> = {
@@ -245,7 +245,11 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
   const [saving, setSaving] = useState(false)
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null)
   const [toasts, setToasts] = useState<{ id: string; message: string; type: 'success' | 'error' | 'info' }[]>([])
-
+  const [aiModalOpen, setAiModalOpen] = useState(false)
+  const [aiGenerating, setAiGenerating] = useState(false)
+  const [aiTravelStyle, setAiTravelStyle] = useState('')
+  const [aiNotes, setAiNotes] = useState('')
+  const [tripData, setTripData] = useState<{ destination: string; country: string; start_date: string; end_date: string } | null>(null)
   const addToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
     const id = Math.random().toString(36).slice(2)
     setToasts(prev => [...prev, { id, message, type }])
@@ -265,6 +269,52 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
   }, [tripId, section])
 
   useEffect(() => { loadItems() }, [loadItems])
+
+  // Load trip data for AI generation
+  useEffect(() => {
+    if (section === 'itinerary') {
+      fetch(`/api/admin/trips/${tripId}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data) setTripData({ destination: data.destination, country: data.country, start_date: data.start_date, end_date: data.end_date })
+        })
+        .catch(() => {})
+    }
+  }, [tripId, section])
+
+  async function handleAiGenerate() {
+    if (!tripData?.destination || !tripData?.start_date || !tripData?.end_date) {
+      addToast('A viagem precisa ter destino, data de início e fim para gerar o roteiro', 'error')
+      return
+    }
+    setAiGenerating(true)
+    try {
+      const res = await fetch('/api/admin/ai/generate-itinerary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tripId,
+          destination: tripData.destination,
+          country: tripData.country,
+          start_date: tripData.start_date,
+          end_date: tripData.end_date,
+          travel_style: aiTravelStyle || undefined,
+          notes: aiNotes || undefined,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Erro ao gerar roteiro')
+      addToast(`✨ ${data.count} itens criados com sucesso!`, 'success')
+      setAiModalOpen(false)
+      setAiTravelStyle('')
+      setAiNotes('')
+      loadItems()
+    } catch (e: unknown) {
+      addToast(e instanceof Error ? e.message : 'Erro ao gerar roteiro com IA', 'error')
+    } finally {
+      setAiGenerating(false)
+    }
+  }
 
   const formFields = getFormFields(section)
 
@@ -355,13 +405,24 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
         </Link>
         <div className="flex items-center justify-between">
           <h1 className="font-cormorant text-4xl font-semibold text-brand-title">{sectionLabel}</h1>
-          <button
-            onClick={openCreate}
-            className="flex items-center gap-2 px-4 py-2.5 bg-brand-gold text-white rounded-lg font-inter text-sm font-medium hover:bg-brand-gold-dark transition-colors"
-          >
-            <Plus size={16} strokeWidth={1.5} />
-            Adicionar
-          </button>
+          <div className="flex items-center gap-2">
+            {section === 'itinerary' && (
+              <button
+                onClick={() => setAiModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 border border-brand-gold text-brand-gold rounded-lg font-inter text-sm font-medium hover:bg-brand-gold hover:text-white transition-colors"
+              >
+                <Sparkles size={16} strokeWidth={1.5} />
+                Gerar com IA
+              </button>
+            )}
+            <button
+              onClick={openCreate}
+              className="flex items-center gap-2 px-4 py-2.5 bg-brand-gold text-white rounded-lg font-inter text-sm font-medium hover:bg-brand-gold-dark transition-colors"
+            >
+              <Plus size={16} strokeWidth={1.5} />
+              Adicionar
+            </button>
+          </div>
         </div>
       </div>
 
@@ -471,6 +532,90 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
         <div className="flex gap-3">
           <button onClick={() => setDeleteItemId(null)} className="flex-1 px-4 py-2.5 border border-brand-border text-brand-text rounded-lg font-inter text-sm hover:bg-brand-bg transition-colors">Cancelar</button>
           <button onClick={() => deleteItemId && handleDelete(deleteItemId)} className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg font-inter text-sm font-medium hover:bg-red-700 transition-colors">Excluir</button>
+        </div>
+      </Modal>
+
+      {/* AI Generation Modal */}
+      <Modal isOpen={aiModalOpen} onClose={() => !aiGenerating && setAiModalOpen(false)} title="✨ Gerar Roteiro com IA" size="lg">
+        <div className="space-y-4">
+          {items.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <p className="font-inter text-sm text-amber-800">
+                Já existem {items.length} itens no roteiro. A IA irá adicionar novos itens sem apagar os existentes.
+              </p>
+            </div>
+          )}
+          {!tripData?.destination || !tripData?.start_date || !tripData?.end_date ? (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="font-inter text-sm text-red-700">
+                A viagem precisa ter destino, data de início e data de fim configurados para gerar o roteiro com IA.
+              </p>
+            </div>
+          ) : (
+            <div className="bg-brand-bg-secondary rounded-lg p-3">
+              <p className="font-inter text-sm text-brand-text">
+                <span className="font-medium">Destino:</span> {tripData.destination}, {tripData.country}
+              </p>
+              <p className="font-inter text-sm text-brand-text">
+                <span className="font-medium">Período:</span>{' '}
+                {new Date(tripData.start_date + 'T12:00:00').toLocaleDateString('pt-BR')} — {new Date(tripData.end_date + 'T12:00:00').toLocaleDateString('pt-BR')}
+              </p>
+            </div>
+          )}
+          <div className="flex flex-col gap-1.5">
+            <label className="font-inter text-sm font-medium text-brand-text">Estilo de viagem</label>
+            <select
+              value={aiTravelStyle}
+              onChange={(e) => setAiTravelStyle(e.target.value)}
+              className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all"
+            >
+              <option value="">Selecione (opcional)...</option>
+              <option value="Cultural">Cultural</option>
+              <option value="Aventura">Aventura</option>
+              <option value="Gastronômico">Gastronômico</option>
+              <option value="Relaxamento">Relaxamento</option>
+              <option value="Família">Família</option>
+              <option value="Romântico">Romântico</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="font-inter text-sm font-medium text-brand-text">
+              Observações <span className="text-brand-muted font-normal">(opcional)</span>
+            </label>
+            <textarea
+              value={aiNotes}
+              onChange={(e) => setAiNotes(e.target.value)}
+              rows={3}
+              placeholder="Ex: O cliente prefere experiências exclusivas, tem restrição alimentar..."
+              className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent placeholder:text-brand-muted resize-none"
+            />
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={() => { setAiModalOpen(false); setAiTravelStyle(''); setAiNotes('') }}
+              disabled={aiGenerating}
+              className="flex-1 px-4 py-2.5 border border-brand-border text-brand-text rounded-lg font-inter text-sm hover:bg-brand-bg transition-colors disabled:opacity-60"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleAiGenerate}
+              disabled={aiGenerating || !tripData?.destination || !tripData?.start_date || !tripData?.end_date}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-gold text-white rounded-lg font-inter text-sm font-medium hover:bg-brand-gold-dark transition-colors disabled:opacity-60"
+            >
+              {aiGenerating ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Gerando roteiro...
+                </>
+              ) : (
+                <>
+                  <Sparkles size={16} strokeWidth={1.5} />
+                  Gerar Roteiro
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </Modal>
 
