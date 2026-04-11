@@ -102,9 +102,6 @@ export default async function DashboardPage() {
           <h1 className="font-cinzel text-white text-4xl md:text-5xl lg:text-6xl font-semibold tracking-wide mb-4">
             BEM VINDO(A)
           </h1>
-          <p className="font-outfit text-white/80 text-lg md:text-xl mb-6">
-            Sua próxima viagem inicia aqui
-          </p>
           <p className="font-outfit italic text-white/50 text-sm max-w-md leading-relaxed mb-16">
             Planejamento exclusivo para uma experiência leve, organizada e memorável.
           </p>
