@@ -39,7 +39,9 @@ export function LanguageProvider({
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ language: lang }),
-    }).catch(() => {}) // silently fail
+    }).catch((err) => {
+      console.warn('Failed to save language preference:', err)
+    })
   }
 
   return (
