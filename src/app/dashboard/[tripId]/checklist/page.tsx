@@ -13,6 +13,7 @@ import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Modal from '@/components/ui/Modal'
 import ProgressBar from '@/components/ui/ProgressBar'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { ChecklistItem } from '@/lib/types'
 import type { ReactNode } from 'react'
 
@@ -36,6 +37,7 @@ interface NewTaskForm {
 export default function ChecklistPage() {
   const params = useParams()
   const tripId = params.tripId as string
+  const { t } = useLanguage()
 
   const [items, setItems] = useState<ChecklistItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -95,7 +97,7 @@ export default function ChecklistPage() {
     })
 
     if (error) {
-      setError('Erro ao adicionar tarefa. Tente novamente.')
+      setError(t.common.error)
     } else {
       setModalOpen(false)
       setForm({ title: '', section: '', description: '' })
@@ -124,7 +126,7 @@ export default function ChecklistPage() {
       <div className="flex items-center justify-center min-h-64">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-brand-gold border-t-transparent rounded-full animate-spin" />
-          <p className="font-inter text-sm text-brand-muted">Carregando...</p>
+          <p className="font-inter text-sm text-brand-muted">{t.common.loading}</p>
         </div>
       </div>
     )
@@ -136,17 +138,17 @@ export default function ChecklistPage() {
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <h1 className="font-cormorant text-3xl font-semibold text-brand-title">
-            Checklist Pré-Viagem
+            {t.checklist.title}
           </h1>
           {totalCount > 0 && (
             <p className="font-outfit text-sm text-brand-muted">
-              {completedCount} de {totalCount} tarefas concluídas ({progressValue}%)
+              {completedCount} {t.common.of} {totalCount} {t.checklist.tasksCompleted} ({progressValue}%)
             </p>
           )}
         </div>
         <Button onClick={() => setModalOpen(true)} size="sm">
           <Plus size={16} strokeWidth={1.5} />
-          Adicionar Tarefa
+          {t.checklist.addTask}
         </Button>
       </div>
 
@@ -154,7 +156,7 @@ export default function ChecklistPage() {
       {totalCount > 0 && (
         <ProgressBar
           value={progressValue}
-          label={`${completedCount} de ${totalCount} tarefas concluídas`}
+          label={`${completedCount} ${t.common.of} ${totalCount} ${t.checklist.tasksCompleted}`}
           showPercentage
         />
       )}
@@ -164,10 +166,10 @@ export default function ChecklistPage() {
         <Card className="text-center py-16">
           <CheckSquare size={40} strokeWidth={1.5} className="text-brand-muted mx-auto mb-3" />
           <p className="font-cormorant text-xl text-brand-title mb-1">
-            Nenhuma tarefa ainda
+            {t.checklist.noItems}
           </p>
           <p className="font-outfit text-sm text-brand-muted">
-            Adicione tarefas de preparação para a sua viagem.
+            {t.checklist.noItemsDesc}
           </p>
         </Card>
       )}
@@ -214,7 +216,7 @@ export default function ChecklistPage() {
                           ? 'bg-brand-gold border-brand-gold'
                           : 'border-brand-border hover:border-brand-gold'
                       )}
-                      aria-label={item.is_completed ? 'Marcar como pendente' : 'Marcar como concluído'}
+                      aria-label={item.is_completed ? t.checklist.completed : t.checklist.pending}
                     >
                       {item.is_completed && (
                         <svg viewBox="0 0 12 10" className="w-3 h-3 fill-none stroke-white stroke-2">
@@ -241,7 +243,7 @@ export default function ChecklistPage() {
                         <div className="flex items-center gap-1 mt-1">
                           <Calendar size={11} strokeWidth={1.5} className="text-brand-muted" />
                           <span className="font-inter text-xs text-brand-muted">
-                            Prazo: {formatDateShort(item.deadline)}
+                            {t.checklist.deadline}: {formatDateShort(item.deadline)}
                           </span>
                         </div>
                       )}
@@ -258,13 +260,13 @@ export default function ChecklistPage() {
       <Modal
         isOpen={modalOpen}
         onClose={() => { setModalOpen(false); setForm({ title: '', section: '', description: '' }); setError(null) }}
-        title="Adicionar Tarefa"
+        title={t.checklist.addTaskModal}
         size="md"
       >
         <form onSubmit={handleAddTask} className="space-y-4">
           <div className="flex flex-col gap-1.5">
             <label className="font-inter text-sm font-medium text-brand-text">
-              Título <span className="text-brand-error">*</span>
+              {t.checklist.taskTitle} <span className="text-brand-error">{t.common.required}</span>
             </label>
             <input
               type="text"
@@ -278,9 +280,9 @@ export default function ChecklistPage() {
 
           <div className="flex flex-col gap-1.5">
             <label className="font-inter text-sm font-medium text-brand-text">
-              Seção{' '}
+              {t.checklist.section}{' '}
               <span className="text-brand-muted font-normal">
-                (deixe em branco para usar a primeira existente)
+                ({t.checklist.sectionHint})
               </span>
             </label>
             <input
@@ -304,7 +306,7 @@ export default function ChecklistPage() {
 
           <div className="flex flex-col gap-1.5">
             <label className="font-inter text-sm font-medium text-brand-text">
-              Descrição <span className="text-brand-muted font-normal">(opcional)</span>
+              {t.checklist.description} <span className="text-brand-muted font-normal">({t.common.optional})</span>
             </label>
             <textarea
               value={form.description}
@@ -325,10 +327,10 @@ export default function ChecklistPage() {
               variant="ghost"
               onClick={() => { setModalOpen(false); setForm({ title: '', section: '', description: '' }) }}
             >
-              Cancelar
+              {t.common.cancel}
             </Button>
             <Button type="submit" loading={saving}>
-              Adicionar
+              {t.checklist.addTask}
             </Button>
           </div>
         </form>
