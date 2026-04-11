@@ -1,15 +1,38 @@
 import { createClient } from '@/lib/supabase/server'
 import Card from '@/components/ui/Card'
 import Link from 'next/link'
-import { Users, Plane, TrendingUp, Clock } from 'lucide-react'
+import { Users, Plane, TrendingUp, Clock, DollarSign, BarChart2 } from 'lucide-react'
 
 export default async function AdminPage() {
   const supabase = await createClient()
 
-  const [{ count: clientsCount }, { count: tripsCount }] = await Promise.all([
+  const [
+    { count: clientsCount },
+    { count: tripsCount },
+    { count: inProgressCount },
+    { count: planningCount },
+  ] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'client'),
     supabase.from('trips').select('*', { count: 'exact', head: true }),
+    supabase.from('trips').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
+    supabase.from('trips').select('*', { count: 'exact', head: true }).eq('status', 'planning'),
   ])
+
+  // Try to get pending payments sum (may fail if table doesn't exist yet)
+  let pendingAmount = 0
+  try {
+    const { data: pendingPayments } = await supabase
+      .from('client_payments')
+      .select('amount')
+      .in('status', ['pending', 'overdue'])
+    if (pendingPayments) {
+      pendingAmount = pendingPayments.reduce((sum, p) => sum + Number(p.amount), 0)
+    }
+  } catch { /* table may not exist yet */ }
+
+  const formatBRL = (amount: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount)
+  }
 
   const stats = [
     {
@@ -29,16 +52,23 @@ export default async function AdminPage() {
     {
       icon: TrendingUp,
       label: 'Em andamento',
-      value: '—',
+      value: inProgressCount ?? 0,
       color: 'text-brand-success',
       bg: 'bg-green-50',
     },
     {
       icon: Clock,
       label: 'Planejamento',
-      value: '—',
+      value: planningCount ?? 0,
       color: 'text-brand-warning',
       bg: 'bg-amber-50',
+    },
+    {
+      icon: DollarSign,
+      label: 'A receber',
+      value: formatBRL(pendingAmount),
+      color: 'text-orange-500',
+      bg: 'bg-orange-50',
     },
   ]
 
@@ -55,7 +85,7 @@ export default async function AdminPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
         {stats.map(({ icon: Icon, label, value, color, bg }) => (
           <Card key={label} padding="md">
             <div className="flex items-center gap-3">
@@ -107,6 +137,22 @@ export default async function AdminPage() {
                 <div>
                   <h3 className="font-inter text-sm font-semibold text-brand-title">Gerenciar Viagens</h3>
                   <p className="font-outfit text-xs text-brand-muted mt-0.5">Criar e editar itinerários</p>
+                </div>
+              </div>
+            </Card>
+          </Link>
+          <Link href="/admin/operations">
+            <Card
+              padding="md"
+              className="hover:shadow-card hover:border-brand-gold/30 transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-brand-bg-secondary rounded-lg flex items-center justify-center">
+                  <BarChart2 size={24} strokeWidth={1.5} className="text-brand-gold" />
+                </div>
+                <div>
+                  <h3 className="font-inter text-sm font-semibold text-brand-title">Controle Operacional</h3>
+                  <p className="font-outfit text-xs text-brand-muted mt-0.5">Finanças, pagamentos e planner</p>
                 </div>
               </div>
             </Card>

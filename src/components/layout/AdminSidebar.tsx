@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Users,
   Plane,
+  BarChart2,
   Settings,
   LogOut,
   Menu,
@@ -20,6 +21,7 @@ const navItems = [
   { href: '/admin', label: 'Painel', icon: <LayoutDashboard size={18} strokeWidth={1.5} /> },
   { href: '/admin/clients', label: 'Clientes', icon: <Users size={18} strokeWidth={1.5} /> },
   { href: '/admin/trips', label: 'Viagens', icon: <Plane size={18} strokeWidth={1.5} /> },
+  { href: '/admin/operations', label: 'Operações', icon: <BarChart2 size={18} strokeWidth={1.5} /> },
   { href: '/admin/settings', label: 'Configurações', icon: <Settings size={18} strokeWidth={1.5} /> },
 ]
 

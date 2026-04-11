@@ -342,3 +342,82 @@ export interface Destination {
   latitude: number
   longitude: number
 }
+
+// ===== WIDGETS =====
+export interface TripWidget {
+  id: string
+  trip_id: string
+  travel_style: string | null
+  ideal_duration: string | null
+  custom_notes: string | null
+  show_weather: boolean
+  show_currency: boolean
+  show_map_button: boolean
+  created_at: string
+  updated_at: string
+}
+
+// ===== OPERAÇÕES =====
+export type TransactionType = 'income' | 'expense'
+export type TransactionCategory = 'service_fee' | 'commission' | 'salary' | 'rent' | 'marketing' | 'tools' | 'travel' | 'tax' | 'other'
+export type TransactionStatus = 'confirmed' | 'pending' | 'cancelled'
+
+export interface CompanyTransaction {
+  id: string
+  type: TransactionType
+  category: TransactionCategory
+  description: string
+  amount: number
+  currency: string
+  date: string
+  client_id: string | null
+  trip_id: string | null
+  status: TransactionStatus
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type PaymentStatus = 'pending' | 'paid' | 'overdue' | 'cancelled'
+export type PaymentMethod = 'pix' | 'credit_card' | 'bank_transfer' | 'cash' | 'other'
+
+export interface ClientPayment {
+  id: string
+  client_id: string
+  trip_id: string | null
+  description: string
+  amount: number
+  due_date: string | null
+  paid_date: string | null
+  status: PaymentStatus
+  payment_method: PaymentMethod | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+  // relações
+  profile?: { id: string; full_name: string | null; email: string }
+  trip?: { id: string; title: string } | null
+}
+
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent'
+export type TaskStatus = 'todo' | 'in_progress' | 'done' | 'cancelled'
+export type TaskCategory = 'itinerary' | 'documents' | 'payment' | 'client_contact' | 'booking' | 'other'
+
+export interface PlannerTask {
+  id: string
+  title: string
+  description: string | null
+  trip_id: string | null
+  client_id: string | null
+  due_date: string | null
+  priority: TaskPriority
+  status: TaskStatus
+  category: TaskCategory
+  notes: string | null
+  order_index: number
+  created_at: string
+  updated_at: string
+  // relações
+  profile?: { id: string; full_name: string | null; email: string } | null
+  trip?: { id: string; title: string } | null
+}

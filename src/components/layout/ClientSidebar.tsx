@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
+  LayoutList,
   Map,
   DollarSign,
   FileText,
@@ -38,6 +39,7 @@ function buildNavItems(tripId: string): NavItem[] {
   const base = `/dashboard/${tripId}`
   return [
     { href: `/dashboard`, label: 'Início', icon: <LayoutDashboard size={18} strokeWidth={1.5} /> },
+    { href: `${base}/overview`, label: 'Visão Geral', icon: <LayoutList size={18} strokeWidth={1.5} /> },
     { href: `${base}/itinerary`, label: 'Roteiro', icon: <Map size={18} strokeWidth={1.5} /> },
     { href: `${base}/financial`, label: 'Financeiro', icon: <DollarSign size={18} strokeWidth={1.5} /> },
     { href: `${base}/documents`, label: 'Documentos', icon: <FileText size={18} strokeWidth={1.5} /> },

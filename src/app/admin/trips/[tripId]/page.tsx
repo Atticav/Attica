@@ -55,6 +55,15 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
     title: '', destination: '', country: '', start_date: '', end_date: '',
     status: 'planning', notes: '', cover_image_url: ''
   })
+  const [widgetForm, setWidgetForm] = useState({
+    travel_style: '',
+    ideal_duration: '',
+    custom_notes: '',
+    show_weather: true,
+    show_currency: true,
+    show_map_button: true,
+  })
+  const [savingWidgets, setSavingWidgets] = useState(false)
   const [toasts, setToasts] = useState<{ id: string; message: string; type: 'success' | 'error' | 'info' }[]>([])
 
   const addToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -79,6 +88,23 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
         notes: data.notes || '',
         cover_image_url: data.cover_image_url || '',
       })
+      // Load widgets
+      try {
+        const wRes = await fetch(`/api/admin/trips/${tripId}/widgets`)
+        if (wRes.ok) {
+          const wData = await wRes.json()
+          if (wData) {
+            setWidgetForm({
+              travel_style: wData.travel_style || '',
+              ideal_duration: wData.ideal_duration || '',
+              custom_notes: wData.custom_notes || '',
+              show_weather: wData.show_weather ?? true,
+              show_currency: wData.show_currency ?? true,
+              show_map_button: wData.show_map_button ?? true,
+            })
+          }
+        }
+      } catch { /* widget load is non-critical */ }
     } catch {
       addToast('Erro ao carregar viagem', 'error')
     } finally {
@@ -87,6 +113,23 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
   }, [tripId])
 
   useEffect(() => { loadTrip() }, [loadTrip])
+
+  async function handleSaveWidgets() {
+    setSavingWidgets(true)
+    try {
+      const res = await fetch(`/api/admin/trips/${tripId}/widgets`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(widgetForm),
+      })
+      if (!res.ok) throw new Error('Erro ao salvar widgets')
+      addToast('Widgets salvos!', 'success')
+    } catch (e: unknown) {
+      addToast(e instanceof Error ? e.message : 'Erro ao salvar widgets', 'error')
+    } finally {
+      setSavingWidgets(false)
+    }
+  }
 
   async function handleSave() {
     if (!form.title || !form.destination) {
@@ -203,6 +246,85 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
               rows={3}
               className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all resize-none"
             />
+          </div>
+        </div>
+      </Card>
+
+      {/* Widgets do Dashboard */}
+      <Card padding="md" className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-cormorant text-xl font-semibold text-brand-title">Widgets do Dashboard</h2>
+          <button
+            onClick={handleSaveWidgets}
+            disabled={savingWidgets}
+            className="flex items-center gap-2 px-4 py-2 bg-brand-gold text-white rounded-lg font-inter text-sm font-medium hover:bg-brand-gold-dark transition-colors disabled:opacity-60"
+          >
+            <Save size={14} strokeWidth={1.5} />
+            {savingWidgets ? 'Salvando...' : 'Salvar Widgets'}
+          </button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="font-inter text-sm font-medium text-brand-text">Estilo de viagem</label>
+            <select
+              value={widgetForm.travel_style}
+              onChange={(e) => setWidgetForm(p => ({ ...p, travel_style: e.target.value }))}
+              className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all"
+            >
+              <option value="">Selecionar...</option>
+              <option value="Cultural">Cultural</option>
+              <option value="Aventura">Aventura</option>
+              <option value="Gastronômico">Gastronômico</option>
+              <option value="Relaxamento">Relaxamento</option>
+              <option value="Família">Família</option>
+              <option value="Romântico">Romântico</option>
+              <option value="Business">Business</option>
+            </select>
+          </div>
+          <Input
+            label="Duração ideal"
+            value={widgetForm.ideal_duration}
+            onChange={(e) => setWidgetForm(p => ({ ...p, ideal_duration: e.target.value }))}
+            placeholder="Ex: 7 dias, 10 a 14 dias"
+          />
+          <div className="flex flex-col gap-1.5 md:col-span-2">
+            <label className="font-inter text-sm font-medium text-brand-text">Notas personalizadas</label>
+            <textarea
+              value={widgetForm.custom_notes}
+              onChange={(e) => setWidgetForm(p => ({ ...p, custom_notes: e.target.value }))}
+              placeholder="Notas adicionais visíveis para o cliente..."
+              rows={2}
+              className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all resize-none"
+            />
+          </div>
+          <div className="md:col-span-2 flex flex-wrap gap-6">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={widgetForm.show_weather}
+                onChange={(e) => setWidgetForm(p => ({ ...p, show_weather: e.target.checked }))}
+                className="w-4 h-4 rounded border-brand-border text-brand-gold focus:ring-brand-gold"
+              />
+              <span className="font-inter text-sm text-brand-text">Exibir widget de clima</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={widgetForm.show_currency}
+                onChange={(e) => setWidgetForm(p => ({ ...p, show_currency: e.target.checked }))}
+                className="w-4 h-4 rounded border-brand-border text-brand-gold focus:ring-brand-gold"
+              />
+              <span className="font-inter text-sm text-brand-text">Exibir conversor de câmbio</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={widgetForm.show_map_button}
+                onChange={(e) => setWidgetForm(p => ({ ...p, show_map_button: e.target.checked }))}
+                className="w-4 h-4 rounded border-brand-border text-brand-gold focus:ring-brand-gold"
+              />
+              <span className="font-inter text-sm text-brand-text">Exibir botão de mapa</span>
+            </label>
           </div>
         </div>
       </Card>
