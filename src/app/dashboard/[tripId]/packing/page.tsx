@@ -10,17 +10,8 @@ import Button from '@/components/ui/Button'
 import Modal from '@/components/ui/Modal'
 import ProgressBar from '@/components/ui/ProgressBar'
 import Tabs from '@/components/ui/Tabs'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { PackingItem, PackingItemCategory } from '@/lib/types'
-
-const CATEGORY_LABELS: Record<PackingItemCategory, string> = {
-  clothing: 'Roupa',
-  documents: 'Documento',
-  health: 'Medicamento',
-  electronics: 'Eletrônico',
-  toiletries: 'Higiene',
-  accessories: 'Acessório',
-  other: 'Outro',
-}
 
 const CATEGORY_BADGE: Record<PackingItemCategory, string> = {
   clothing: 'bg-purple-100 text-purple-700',
@@ -32,15 +23,8 @@ const CATEGORY_BADGE: Record<PackingItemCategory, string> = {
   other: 'bg-gray-100 text-gray-700',
 }
 
-const FILTER_OPTIONS: { value: PackingItemCategory | 'all'; label: string }[] = [
-  { value: 'all', label: 'Todos' },
-  { value: 'documents', label: 'Documento' },
-  { value: 'clothing', label: 'Roupa' },
-  { value: 'electronics', label: 'Eletrônico' },
-  { value: 'toiletries', label: 'Higiene' },
-  { value: 'health', label: 'Medicamento' },
-  { value: 'accessories', label: 'Acessório' },
-  { value: 'other', label: 'Outro' },
+const CATEGORY_KEYS: PackingItemCategory[] = [
+  'clothing', 'documents', 'health', 'electronics', 'toiletries', 'accessories', 'other',
 ]
 
 interface NewItemForm {
@@ -60,6 +44,14 @@ const DEFAULT_FORM: NewItemForm = {
 export default function PackingPage() {
   const params = useParams()
   const tripId = params.tripId as string
+  const { t } = useLanguage()
+
+  const CATEGORY_LABELS: Record<PackingItemCategory, string> = t.packing.categories
+
+  const FILTER_OPTIONS: { value: PackingItemCategory | 'all'; label: string }[] = [
+    { value: 'all', label: t.packing.allCategories },
+    ...CATEGORY_KEYS.map((key) => ({ value: key, label: CATEGORY_LABELS[key] })),
+  ]
 
   const [items, setItems] = useState<PackingItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -120,7 +112,7 @@ export default function PackingPage() {
     })
 
     if (error) {
-      setError('Erro ao adicionar item. Tente novamente.')
+      setError(t.common.error)
     } else {
       setModalOpen(false)
       setForm(DEFAULT_FORM)
@@ -142,8 +134,8 @@ export default function PackingPage() {
   const progressValue = totalCount > 0 ? Math.round((packedCount / totalCount) * 100) : 0
 
   const tabs = [
-    { id: 'packing', label: 'Mala', count: totalCount },
-    { id: 'restricted', label: 'O Que Não Levar' },
+    { id: 'packing', label: t.packing.bag, count: totalCount },
+    { id: 'restricted', label: t.packing.restricted },
   ]
 
   if (loading) {
@@ -151,7 +143,7 @@ export default function PackingPage() {
       <div className="flex items-center justify-center min-h-64">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-brand-gold border-t-transparent rounded-full animate-spin" />
-          <p className="font-inter text-sm text-brand-muted">Carregando...</p>
+          <p className="font-inter text-sm text-brand-muted">{t.common.loading}</p>
         </div>
       </div>
     )
@@ -163,17 +155,17 @@ export default function PackingPage() {
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <h1 className="font-cormorant text-3xl font-semibold text-brand-title">
-            Mala Inteligente
+            {t.packing.title}
           </h1>
           {totalCount > 0 && (
             <p className="font-outfit text-sm text-brand-muted">
-              {packedCount} de {totalCount} itens prontos ({progressValue}%)
+              {packedCount} {t.common.of} {totalCount} {t.packing.itemsReady} ({progressValue}%)
             </p>
           )}
         </div>
         <Button onClick={() => setModalOpen(true)} size="sm">
           <Plus size={16} strokeWidth={1.5} />
-          Adicionar Item
+          {t.packing.addItem}
         </Button>
       </div>
 
@@ -181,7 +173,7 @@ export default function PackingPage() {
       {totalCount > 0 && (
         <ProgressBar
           value={progressValue}
-          label={`${packedCount} de ${totalCount} itens prontos`}
+          label={`${packedCount} ${t.common.of} ${totalCount} ${t.packing.itemsReady}`}
           showPercentage
         />
       )}
@@ -215,12 +207,12 @@ export default function PackingPage() {
             <Card className="text-center py-16">
               <Luggage size={40} strokeWidth={1.5} className="text-brand-muted mx-auto mb-3" />
               <p className="font-cormorant text-xl text-brand-title mb-1">
-                Nenhum item encontrado
+                {t.packing.noItems}
               </p>
               <p className="font-outfit text-sm text-brand-muted">
                 {activeFilter === 'all'
-                  ? 'Adicione itens à sua mala clicando em "Adicionar Item".'
-                  : 'Nenhum item nesta categoria.'}
+                  ? `${t.packing.noItems}.`
+                  : t.packing.noItems}
               </p>
             </Card>
           ) : (
@@ -239,7 +231,7 @@ export default function PackingPage() {
                           ? 'bg-brand-gold border-brand-gold'
                           : 'border-brand-border hover:border-brand-gold'
                       )}
-                      aria-label={item.is_packed ? 'Marcar como não embalado' : 'Marcar como embalado'}
+                      aria-label={item.is_packed ? t.packing.packed : t.packing.notPacked}
                     >
                       {item.is_packed && (
                         <svg viewBox="0 0 12 10" className="w-3 h-3 fill-none stroke-white stroke-2">
@@ -295,10 +287,10 @@ export default function PackingPage() {
             </div>
             <div>
               <p className="font-cormorant text-xl text-brand-title mb-1">
-                Sem restrições cadastradas
+                {t.packing.noRestrictions}
               </p>
               <p className="font-outfit text-sm text-brand-muted">
-                Nenhuma restrição cadastrada para este destino.
+                {t.packing.noRestrictionsDesc}
               </p>
             </div>
           </div>
@@ -309,13 +301,13 @@ export default function PackingPage() {
       <Modal
         isOpen={modalOpen}
         onClose={() => { setModalOpen(false); setForm(DEFAULT_FORM); setError(null) }}
-        title="Adicionar Item à Mala"
+        title={t.packing.addItemModal}
         size="md"
       >
         <form onSubmit={handleAddItem} className="space-y-4">
           <div className="flex flex-col gap-1.5">
             <label className="font-inter text-sm font-medium text-brand-text">
-              Nome do item <span className="text-brand-error">*</span>
+              {t.packing.itemName} <span className="text-brand-error">{t.common.required}</span>
             </label>
             <input
               type="text"
@@ -328,7 +320,7 @@ export default function PackingPage() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="font-inter text-sm font-medium text-brand-text">Categoria</label>
+            <label className="font-inter text-sm font-medium text-brand-text">{t.packing.category}</label>
             <select
               value={form.category}
               onChange={(e) => setForm((f) => ({ ...f, category: e.target.value as PackingItemCategory }))}
@@ -341,7 +333,7 @@ export default function PackingPage() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="font-inter text-sm font-medium text-brand-text">Quantidade</label>
+            <label className="font-inter text-sm font-medium text-brand-text">{t.packing.quantity}</label>
             <input
               type="number"
               min={1}
@@ -353,7 +345,7 @@ export default function PackingPage() {
 
           <div className="flex flex-col gap-1.5">
             <label className="font-inter text-sm font-medium text-brand-text">
-              Notas <span className="text-brand-muted font-normal">(opcional)</span>
+              {t.packing.notes} <span className="text-brand-muted font-normal">({t.common.optional})</span>
             </label>
             <textarea
               value={form.notes}
@@ -374,10 +366,10 @@ export default function PackingPage() {
               variant="ghost"
               onClick={() => { setModalOpen(false); setForm(DEFAULT_FORM) }}
             >
-              Cancelar
+              {t.common.cancel}
             </Button>
             <Button type="submit" loading={saving}>
-              Adicionar
+              {t.packing.addItem}
             </Button>
           </div>
         </form>

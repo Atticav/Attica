@@ -1,4 +1,6 @@
-import { createClient } from '@/lib/supabase/server'
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
 import Card from '@/components/ui/Card'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -25,51 +27,92 @@ import {
   Sun,
   Plane as PlaneIcon,
 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 import { getDestinationInfo } from '@/lib/destination-data'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
+import type { Trip } from '@/lib/types'
 
-const sections = [
-  { icon: Map, label: 'Roteiro', desc: 'Dia a dia da sua viagem', slug: 'itinerary' },
-  { icon: DollarSign, label: 'Financeiro', desc: 'Controle de gastos e pagamentos', slug: 'financial' },
-  { icon: FileText, label: 'Documentos', desc: 'Passaportes, vistos e mais', slug: 'documents' },
-  { icon: Luggage, label: 'Mala Inteligente', desc: 'Lista de itens para empacotar', slug: 'packing' },
-  { icon: CheckSquare, label: 'Checklist', desc: 'Tarefas antes da viagem', slug: 'checklist' },
-  { icon: Compass, label: 'Central Estratégica', desc: 'Links e informações essenciais', slug: 'strategic' },
-  { icon: PlayCircle, label: 'Guia Attica', desc: 'Vídeos e tutoriais exclusivos', slug: 'guide' },
-  { icon: ImageIcon, label: 'Galeria', desc: 'Fotos e vídeos do destino', slug: 'gallery' },
-  { icon: UtensilsCrossed, label: 'Restaurantes', desc: 'Indicações gastronômicas', slug: 'restaurants' },
-  { icon: Camera, label: 'Fotografia', desc: 'Dicas para fotos incríveis', slug: 'photography' },
-  { icon: Globe, label: 'Cultura', desc: 'Costumes e informações locais', slug: 'culture' },
-  { icon: BookOpen, label: 'Vocabulário', desc: 'Palavras e frases essenciais', slug: 'vocabulary' },
-  { icon: ScrollText, label: 'Contrato', desc: 'Documentos e acordos', slug: 'contract' },
+type SectionSlug = 'itinerary' | 'financial' | 'documents' | 'packing' | 'checklist' | 'strategic' | 'guide' | 'gallery' | 'restaurants' | 'photography' | 'culture' | 'vocabulary' | 'contract'
+
+const sectionIcons: Record<SectionSlug, typeof Map> = {
+  itinerary: Map,
+  financial: DollarSign,
+  documents: FileText,
+  packing: Luggage,
+  checklist: CheckSquare,
+  strategic: Compass,
+  guide: PlayCircle,
+  gallery: ImageIcon,
+  restaurants: UtensilsCrossed,
+  photography: Camera,
+  culture: Globe,
+  vocabulary: BookOpen,
+  contract: ScrollText,
+}
+
+const sectionSlugs: SectionSlug[] = [
+  'itinerary', 'financial', 'documents', 'packing', 'checklist',
+  'strategic', 'guide', 'gallery', 'restaurants', 'photography',
+  'culture', 'vocabulary', 'contract',
 ]
 
-export default async function DashboardPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+export default function DashboardPage() {
+  const { t, language } = useLanguage()
+  const [firstName, setFirstName] = useState('')
+  const [trips, setTrips] = useState<Trip[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name')
-    .eq('id', user!.id)
-    .single()
+  const loadData = useCallback(async () => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
 
-  const firstName = profile?.full_name?.split(' ')[0] ?? 'Viajante'
+    const [{ data: profile }, { data: tripsData }] = await Promise.all([
+      supabase.from('profiles').select('full_name').eq('id', user.id).single(),
+      supabase.from('trips').select('*').eq('client_id', user.id).order('created_at', { ascending: false }),
+    ])
 
-  const { data: trips } = await supabase
-    .from('trips')
-    .select('*')
-    .eq('client_id', user!.id)
-    .order('created_at', { ascending: false })
+    setFirstName(profile?.full_name?.split(' ')[0] ?? '')
+    setTrips(tripsData ?? [])
+    setLoading(false)
+  }, [])
 
-  const activeTrip = trips?.[0] ?? null
+  useEffect(() => { loadData() }, [loadData])
+
+  const activeTrip = trips[0] ?? null
   const destinationInfo = activeTrip
     ? getDestinationInfo(activeTrip.destination, activeTrip.country)
     : null
   const daysUntilTrip = activeTrip?.start_date
     ? Math.ceil((new Date(activeTrip.start_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null
+
+  const sections = sectionSlugs.map((slug) => ({
+    icon: sectionIcons[slug],
+    label: t.dashboard.sections[slug],
+    desc: t.dashboard.sections[`${slug}Desc` as keyof typeof t.dashboard.sections],
+    slug,
+  }))
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-brand-gold border-t-transparent rounded-full animate-spin" />
+          <p className="font-inter text-sm text-brand-muted">{t.common.loading}</p>
+        </div>
+      </div>
+    )
+  }
+
+  const infoItems = destinationInfo ? [
+    { icon: Globe, label: t.dashboard.destination, value: destinationInfo.country },
+    { icon: Languages, label: t.dashboard.language, value: destinationInfo.language },
+    { icon: Coins, label: t.dashboard.currency, value: destinationInfo.currency },
+    { icon: Zap, label: t.dashboard.voltage, value: destinationInfo.voltage },
+    { icon: Clock, label: t.dashboard.timezone, value: destinationInfo.timezoneOffset },
+    { icon: Sun, label: t.dashboard.bestSeason, value: destinationInfo.bestSeason },
+  ] : []
 
   return (
     <>
@@ -100,10 +143,10 @@ export default async function DashboardPage() {
           </p>
 
           <h1 className="font-cinzel text-white text-4xl md:text-5xl lg:text-6xl font-semibold tracking-wide mb-4">
-            BEM VINDO(A)
+            {t.hero.welcome}
           </h1>
           <p className="font-outfit italic text-white/50 text-sm max-w-md leading-relaxed mb-16">
-            Planejamento exclusivo para uma experiência leve, organizada e memorável.
+            {t.hero.subtitle}
           </p>
 
           {/* Animated scroll arrow */}
@@ -122,10 +165,10 @@ export default async function DashboardPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="font-cormorant text-4xl font-semibold text-brand-title">
-            Olá, {firstName}
+            {t.dashboard.welcome}, {firstName}
           </h1>
           <p className="font-outfit text-brand-muted mt-1">
-            Bem-vindo(a) ao seu Caderno de Viagem
+            {t.dashboard.welcomeSubtitle}
           </p>
         </div>
 
@@ -133,7 +176,7 @@ export default async function DashboardPage() {
         {trips && trips.length > 0 ? (
           <div className="mb-10">
             <h2 className="font-cormorant text-2xl font-semibold text-brand-title mb-4">
-              Suas viagens
+              {t.dashboard.yourTrips}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {trips.map((trip) => (
@@ -147,8 +190,8 @@ export default async function DashboardPage() {
                     <p className="font-outfit text-sm text-brand-muted">{trip.destination}</p>
                     {trip.start_date && (
                       <p className="font-inter text-xs text-brand-muted mt-2">
-                        {new Date(trip.start_date).toLocaleDateString('pt-BR')}
-                        {trip.end_date && ` — ${new Date(trip.end_date).toLocaleDateString('pt-BR')}`}
+                        {new Date(trip.start_date).toLocaleDateString(language)}
+                        {trip.end_date && ` — ${new Date(trip.end_date).toLocaleDateString(language)}`}
                       </p>
                     )}
                   </Card>
@@ -163,10 +206,10 @@ export default async function DashboardPage() {
                 <Map className="text-brand-gold" size={32} strokeWidth={1.5} />
               </div>
               <h3 className="font-cormorant text-2xl font-semibold text-brand-title mb-2">
-                Nenhuma viagem ainda
+                {t.dashboard.noTrips}
               </h3>
               <p className="font-outfit text-brand-muted text-sm">
-                Em breve sua consultora Attica irá preparar seu caderno de viagem personalizado.
+                {t.dashboard.noTripsDesc}
               </p>
             </div>
           </Card>
@@ -176,7 +219,7 @@ export default async function DashboardPage() {
         {activeTrip && destinationInfo && (
           <div className="mb-10">
             <h2 className="font-cormorant text-2xl font-semibold text-brand-title mb-4">
-              Informações do destino
+              {t.dashboard.destinationInfo}
             </h2>
 
             {/* Countdown + Destination header */}
@@ -188,7 +231,7 @@ export default async function DashboardPage() {
                   </h3>
                   {daysUntilTrip !== null && daysUntilTrip > 0 && (
                     <p className="font-outfit text-sm text-brand-muted mt-1">
-                      Faltam <span className="text-brand-gold font-medium">{daysUntilTrip} dias</span> ✈
+                      {t.dashboard.daysUntil} <span className="text-brand-gold font-medium">{daysUntilTrip} {t.common.days}</span> ✈
                     </p>
                   )}
                 </div>
@@ -202,14 +245,7 @@ export default async function DashboardPage() {
 
             {/* Info grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {[
-                { icon: Globe, label: 'Destino', value: destinationInfo.country },
-                { icon: Languages, label: 'Idioma', value: destinationInfo.language },
-                { icon: Coins, label: 'Moeda', value: destinationInfo.currency },
-                { icon: Zap, label: 'Voltagem', value: destinationInfo.voltage },
-                { icon: Clock, label: 'Fuso horário', value: destinationInfo.timezoneOffset },
-                { icon: Sun, label: 'Melhor época', value: destinationInfo.bestSeason },
-              ]
+              {infoItems
                 .filter(item => item.value)
                 .map(({ icon: InfoIcon, label, value }) => (
                   <Card key={label} padding="sm">
@@ -234,13 +270,13 @@ export default async function DashboardPage() {
                     <PlaneIcon size={16} strokeWidth={1.3} className="text-brand-gold" />
                   </div>
                   <div>
-                    <p className="font-inter text-xs text-brand-muted">Data</p>
+                    <p className="font-inter text-xs text-brand-muted">{t.dashboard.date}</p>
                     <p className="font-outfit text-sm text-brand-title font-medium">
-                      {new Date(activeTrip.start_date).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      {new Date(activeTrip.start_date).toLocaleDateString(language, { day: 'numeric', month: 'long', year: 'numeric' })}
                       {activeTrip.end_date && (
                         <>
                           {' · '}
-                          {Math.ceil((new Date(activeTrip.end_date).getTime() - new Date(activeTrip.start_date).getTime()) / (1000 * 60 * 60 * 24))} dias
+                          {Math.ceil((new Date(activeTrip.end_date).getTime() - new Date(activeTrip.start_date).getTime()) / (1000 * 60 * 60 * 24))} {t.common.days}
                         </>
                       )}
                     </p>
@@ -254,7 +290,7 @@ export default async function DashboardPage() {
         {/* Grade de seções */}
         <div>
           <h2 className="font-cormorant text-2xl font-semibold text-brand-title mb-4">
-            Seu caderno de viagem
+            {t.dashboard.travelNotebook}
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {sections.map(({ icon: Icon, label, desc, slug }) => {
@@ -279,9 +315,9 @@ export default async function DashboardPage() {
               )
 
               if (href) {
-                return <Link key={label} href={href}>{cardContent}</Link>
+                return <Link key={slug} href={href}>{cardContent}</Link>
               }
-              return <div key={label}>{cardContent}</div>
+              return <div key={slug}>{cardContent}</div>
             })}
           </div>
         </div>

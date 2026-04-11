@@ -24,11 +24,15 @@ import {
   LogOut,
   Menu,
   X,
+  Settings,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import Logo from './Logo'
 import type { Trip } from '@/lib/types'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
+import { LANGUAGES } from '@/lib/i18n/translations'
+import type { Translations } from '@/lib/i18n/translations'
 
 interface NavItem {
   href: string
@@ -36,31 +40,27 @@ interface NavItem {
   icon: React.ReactNode
 }
 
-function buildNavItems(tripId: string): NavItem[] {
+function buildNavItems(tripId: string, t: Translations): NavItem[] {
   const base = `/dashboard/${tripId}`
   return [
-    { href: `/dashboard`, label: 'Início', icon: <LayoutDashboard size={18} strokeWidth={1.5} /> },
-    { href: `${base}/overview`, label: 'Visão Geral', icon: <LayoutList size={18} strokeWidth={1.5} /> },
-    { href: `${base}/itinerary`, label: 'Roteiro', icon: <Map size={18} strokeWidth={1.5} /> },
-    { href: `${base}/map`, label: 'Mapa', icon: <MapPin size={18} strokeWidth={1.5} /> },
-    { href: `${base}/financial`, label: 'Financeiro', icon: <DollarSign size={18} strokeWidth={1.5} /> },
-    { href: `${base}/documents`, label: 'Documentos', icon: <FileText size={18} strokeWidth={1.5} /> },
-    { href: `${base}/packing`, label: 'Mala Inteligente', icon: <Luggage size={18} strokeWidth={1.5} /> },
-    { href: `${base}/checklist`, label: 'Checklist', icon: <CheckSquare size={18} strokeWidth={1.5} /> },
-    { href: `${base}/strategic`, label: 'Central Estratégica', icon: <Compass size={18} strokeWidth={1.5} /> },
-    { href: `${base}/guide`, label: 'Guia Attica', icon: <PlayCircle size={18} strokeWidth={1.5} /> },
-    { href: `${base}/gallery`, label: 'Galeria', icon: <ImageIcon size={18} strokeWidth={1.5} /> },
-    { href: `${base}/restaurants`, label: 'Restaurantes', icon: <UtensilsCrossed size={18} strokeWidth={1.5} /> },
-    { href: `${base}/photography`, label: 'Fotografia', icon: <Camera size={18} strokeWidth={1.5} /> },
-    { href: `${base}/culture`, label: 'Cultura', icon: <Globe size={18} strokeWidth={1.5} /> },
-    { href: `${base}/vocabulary`, label: 'Vocabulário', icon: <BookOpen size={18} strokeWidth={1.5} /> },
-    { href: `${base}/contract`, label: 'Contrato', icon: <ScrollText size={18} strokeWidth={1.5} /> },
+    { href: `/dashboard`, label: t.nav.home, icon: <LayoutDashboard size={18} strokeWidth={1.5} /> },
+    { href: `${base}/overview`, label: t.nav.overview, icon: <LayoutList size={18} strokeWidth={1.5} /> },
+    { href: `${base}/itinerary`, label: t.nav.itinerary, icon: <Map size={18} strokeWidth={1.5} /> },
+    { href: `${base}/map`, label: t.nav.map, icon: <MapPin size={18} strokeWidth={1.5} /> },
+    { href: `${base}/financial`, label: t.nav.financial, icon: <DollarSign size={18} strokeWidth={1.5} /> },
+    { href: `${base}/documents`, label: t.nav.documents, icon: <FileText size={18} strokeWidth={1.5} /> },
+    { href: `${base}/packing`, label: t.nav.packing, icon: <Luggage size={18} strokeWidth={1.5} /> },
+    { href: `${base}/checklist`, label: t.nav.checklist, icon: <CheckSquare size={18} strokeWidth={1.5} /> },
+    { href: `${base}/strategic`, label: t.nav.strategic, icon: <Compass size={18} strokeWidth={1.5} /> },
+    { href: `${base}/guide`, label: t.nav.guide, icon: <PlayCircle size={18} strokeWidth={1.5} /> },
+    { href: `${base}/gallery`, label: t.nav.gallery, icon: <ImageIcon size={18} strokeWidth={1.5} /> },
+    { href: `${base}/restaurants`, label: t.nav.restaurants, icon: <UtensilsCrossed size={18} strokeWidth={1.5} /> },
+    { href: `${base}/photography`, label: t.nav.photography, icon: <Camera size={18} strokeWidth={1.5} /> },
+    { href: `${base}/culture`, label: t.nav.culture, icon: <Globe size={18} strokeWidth={1.5} /> },
+    { href: `${base}/vocabulary`, label: t.nav.vocabulary, icon: <BookOpen size={18} strokeWidth={1.5} /> },
+    { href: `${base}/contract`, label: t.nav.contract, icon: <ScrollText size={18} strokeWidth={1.5} /> },
   ]
 }
-
-const dashboardOnlyNav: NavItem[] = [
-  { href: `/dashboard`, label: 'Início', icon: <LayoutDashboard size={18} strokeWidth={1.5} /> },
-]
 
 interface ClientSidebarProps {
   trips: Trip[]
@@ -77,13 +77,17 @@ export default function ClientSidebar({
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [tripDropdownOpen, setTripDropdownOpen] = useState(false)
+  const { language, setLanguage, t } = useLanguage()
 
   // Auto-detect tripId from URL when not provided as prop
   const pathSegments = pathname.split('/')
   const effectiveTripId = currentTripId || (pathSegments.length >= 3 && pathSegments[2] ? pathSegments[2] : undefined)
 
-  const currentTrip = trips.find((t) => t.id === effectiveTripId)
-  const navItems = effectiveTripId ? buildNavItems(effectiveTripId) : dashboardOnlyNav
+  const currentTrip = trips.find((tr) => tr.id === effectiveTripId)
+  const dashboardOnlyNav: NavItem[] = [
+    { href: `/dashboard`, label: t.nav.home, icon: <LayoutDashboard size={18} strokeWidth={1.5} /> },
+  ]
+  const navItems = effectiveTripId ? buildNavItems(effectiveTripId, t) : dashboardOnlyNav
 
   async function handleLogout() {
     const supabase = createClient()
@@ -111,9 +115,9 @@ export default function ClientSidebar({
             "
           >
             <div className="text-left min-w-0">
-              <p className="font-inter text-xs text-brand-muted mb-0.5">Viagem atual</p>
+              <p className="font-inter text-xs text-brand-muted mb-0.5">{t.nav.currentTrip}</p>
               <p className="font-outfit text-sm text-brand-title font-medium truncate">
-                {currentTrip?.title ?? 'Selecione uma viagem'}
+                {currentTrip?.title ?? t.nav.selectTrip}
               </p>
             </div>
             <ChevronDown
@@ -183,10 +187,52 @@ export default function ClientSidebar({
             </Link>
           )
         })}
+
+        {/* Settings link */}
+        <Link
+          href="/dashboard/settings"
+          onClick={() => setMobileOpen(false)}
+          className={cn(
+            'flex items-center gap-3 px-3 py-2.5 rounded-lg',
+            'font-inter text-sm transition-all duration-150',
+            pathname === '/dashboard/settings'
+              ? 'bg-brand-hover text-brand-gold-dark font-medium border-l-2 border-brand-gold'
+              : 'text-brand-text hover:bg-brand-bg hover:text-brand-title'
+          )}
+        >
+          <span
+            className={cn(
+              pathname === '/dashboard/settings' ? 'text-brand-gold' : 'text-brand-muted'
+            )}
+          >
+            <Settings size={18} strokeWidth={1.5} />
+          </span>
+          {t.nav.settings}
+        </Link>
       </nav>
 
       {/* Rodapé */}
       <div className="px-4 py-4 border-t border-brand-border">
+        {/* Language Selector */}
+        <div className="flex items-center gap-1 mb-3">
+          {LANGUAGES.map((lang) => (
+            <button
+              key={lang.code}
+              onClick={() => setLanguage(lang.code)}
+              className={cn(
+                'flex items-center gap-1 px-2 py-1.5 rounded-md font-inter text-xs transition-all',
+                language === lang.code
+                  ? 'border border-brand-gold bg-brand-hover text-brand-gold-dark font-medium'
+                  : 'border border-transparent text-brand-muted hover:bg-brand-bg hover:text-brand-text'
+              )}
+              title={lang.label}
+            >
+              <span className="text-sm">{lang.flag}</span>
+              <span className="hidden sm:inline">{lang.label}</span>
+            </button>
+          ))}
+        </div>
+
         {userEmail && (
           <p className="font-inter text-xs text-brand-muted truncate mb-3">
             {userEmail}
@@ -202,7 +248,7 @@ export default function ClientSidebar({
           "
         >
           <LogOut size={16} strokeWidth={1.5} />
-          Sair
+          {t.nav.logout}
         </button>
       </div>
     </div>
