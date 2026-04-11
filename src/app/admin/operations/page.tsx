@@ -7,7 +7,13 @@ import Tabs from '@/components/ui/Tabs'
 import Modal from '@/components/ui/Modal'
 import Input from '@/components/ui/Input'
 import { ToastContainer } from '@/components/ui/Toast'
-import { Plus, Trash2, Edit2, Check, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react'
+import {
+  Plus, Trash2, Edit2, Check, ArrowRight, ArrowUp, ArrowDown,
+  TrendingUp, TrendingDown, BarChart2, CalendarCheck,
+  CreditCard, Clock, AlertCircle, ClipboardList,
+  Wallet, RefreshCw, CheckCircle, XCircle, Calendar,
+  AlertTriangle, CircleDot, Layers,
+} from 'lucide-react'
 import type {
   CompanyTransaction, TransactionType, TransactionCategory, TransactionStatus,
   ClientPayment, PaymentStatus, PaymentMethod,
@@ -29,11 +35,11 @@ const paymentMethodLabels: Record<PaymentMethod, string> = {
 }
 
 const priorityLabels: Record<TaskPriority, string> = {
-  low: '🟢 Baixa', medium: '🟡 Média', high: '🟠 Alta', urgent: '🔴 Urgente',
+  low: 'Baixa', medium: 'Média', high: 'Alta', urgent: 'Urgente',
 }
 
 const taskStatusLabels: Record<TaskStatus, string> = {
-  todo: '📋 A Fazer', in_progress: '🔄 Em Andamento', done: '✅ Concluído', cancelled: '❌ Cancelado',
+  todo: 'A Fazer', in_progress: 'Em Andamento', done: 'Concluído', cancelled: 'Cancelado',
 }
 
 const taskCategoryLabels: Record<TaskCategory, string> = {
@@ -61,9 +67,9 @@ export default function OperationsPage() {
   }
 
   const tabs = [
-    { id: 'finance', label: '💰 Finanças' },
-    { id: 'payments', label: '💳 Pagamentos' },
-    { id: 'planner', label: '📋 Planner' },
+    { id: 'finance', label: 'Finanças', icon: Wallet },
+    { id: 'payments', label: 'Pagamentos', icon: CreditCard },
+    { id: 'planner', label: 'Planner', icon: ClipboardList },
   ]
 
   return (
@@ -211,10 +217,10 @@ function FinanceTab({ addToast }: { addToast: (msg: string, type: 'success' | 'e
     <div>
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <SummaryCard emoji="💰" label="Receita do mês" value={formatCurrency(monthIncome)} color="text-brand-success" />
-        <SummaryCard emoji="📤" label="Despesas do mês" value={formatCurrency(monthExpense)} color="text-brand-error" />
-        <SummaryCard emoji="📊" label="Saldo líquido" value={formatCurrency(monthIncome - monthExpense)} color={monthIncome - monthExpense >= 0 ? 'text-brand-success' : 'text-brand-error'} />
-        <SummaryCard emoji="📈" label="Receita do ano" value={formatCurrency(yearIncome)} color="text-brand-gold" />
+        <SummaryCard icon={TrendingUp} label="Receita do mês" value={formatCurrency(monthIncome)} color="text-brand-success" />
+        <SummaryCard icon={TrendingDown} label="Despesas do mês" value={formatCurrency(monthExpense)} color="text-brand-error" />
+        <SummaryCard icon={BarChart2} label="Saldo líquido" value={formatCurrency(monthIncome - monthExpense)} color={monthIncome - monthExpense >= 0 ? 'text-brand-success' : 'text-brand-error'} />
+        <SummaryCard icon={CalendarCheck} label="Receita do ano" value={formatCurrency(yearIncome)} color="text-brand-gold" />
       </div>
 
       {/* Filters + Add */}
@@ -458,10 +464,10 @@ function PaymentsTab({ addToast }: { addToast: (msg: string, type: 'success' | '
     <div>
       {/* Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <SummaryCard emoji="✅" label="Recebido (mês)" value={formatCurrency(paidThisMonth)} color="text-brand-success" />
-        <SummaryCard emoji="⏳" label="A receber" value={formatCurrency(pendingTotal)} color="text-brand-warning" />
-        <SummaryCard emoji="🔴" label="Em atraso" value={formatCurrency(overdueTotal)} color="text-brand-error" />
-        <SummaryCard emoji="📋" label="Total cobranças" value={String(payments.length)} color="text-brand-gold" />
+        <SummaryCard icon={CheckCircle} label="Recebido (mês)" value={formatCurrency(paidThisMonth)} color="text-brand-success" />
+        <SummaryCard icon={Clock} label="A receber" value={formatCurrency(pendingTotal)} color="text-brand-warning" />
+        <SummaryCard icon={AlertCircle} label="Em atraso" value={formatCurrency(overdueTotal)} color="text-brand-error" />
+        <SummaryCard icon={Layers} label="Total cobranças" value={String(payments.length)} color="text-brand-gold" />
       </div>
 
       {/* Filters + Add */}
@@ -503,7 +509,11 @@ function PaymentsTab({ addToast }: { addToast: (msg: string, type: 'success' | '
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="font-inter text-lg font-semibold text-brand-title">{formatCurrency(Number(p.amount))}</p>
-                  {p.due_date && <p className="font-inter text-xs text-brand-muted">Vence: {formatDateShort(p.due_date)}</p>}
+                  {p.due_date && (
+                    <p className="font-inter text-xs text-brand-muted flex items-center gap-1 justify-end">
+                      <Calendar size={10} /> Vence: {formatDateShort(p.due_date)}
+                    </p>
+                  )}
                 </div>
                 <Badge variant={badge.variant}>{badge.label}</Badge>
                 <div className="flex gap-1">
@@ -526,7 +536,7 @@ function PaymentsTab({ addToast }: { addToast: (msg: string, type: 'success' | '
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
             <label className="font-inter text-sm font-medium text-brand-text">Cliente</label>
-            <select value={form.client_id} onChange={e => setForm(p => ({ ...p, client_id: e.target.value }))} className="rounded-lg border border-brand-border font-outfit text-sm px-4 py-3 bg-brand-bg" required>
+            <select value={form.client_id} onChange={e => setForm(p => ({ ...p, client_id: e.target.value }))} className="rounded-lg border border-brand-border font-outfit text-sm px-4 py-3 bg-brand-bg">
               <option value="">Selecionar...</option>
               {clients.map(c => <option key={c.id} value={c.id}>{c.full_name || c.email}</option>)}
             </select>
@@ -672,11 +682,11 @@ function PlannerTab({ addToast }: { addToast: (msg: string, type: 'success' | 'e
     setModalOpen(true)
   }
 
-  const columns: { status: TaskStatus; label: string }[] = [
-    { status: 'todo', label: '📋 A Fazer' },
-    { status: 'in_progress', label: '🔄 Em Andamento' },
-    { status: 'done', label: '✅ Concluído' },
-    { status: 'cancelled', label: '❌ Cancelado' },
+  const columns: { status: TaskStatus; label: string; icon: React.ElementType }[] = [
+    { status: 'todo', label: 'A Fazer', icon: CircleDot },
+    { status: 'in_progress', label: 'Em Andamento', icon: RefreshCw },
+    { status: 'done', label: 'Concluído', icon: CheckCircle },
+    { status: 'cancelled', label: 'Cancelado', icon: XCircle },
   ]
 
   return (
@@ -707,9 +717,11 @@ function PlannerTab({ addToast }: { addToast: (msg: string, type: 'success' | 'e
           <div className="hidden lg:grid lg:grid-cols-4 gap-4">
             {columns.map(col => {
               const colTasks = tasks.filter(t => t.status === col.status)
+              const ColIcon = col.icon
               return (
                 <div key={col.status} className="bg-brand-bg rounded-lg border border-brand-border p-3">
                   <h3 className="font-inter text-sm font-semibold text-brand-title mb-3 flex items-center gap-2">
+                    <ColIcon size={14} strokeWidth={1.5} className="text-brand-gold" />
                     {col.label}
                     <span className="text-xs text-brand-muted bg-brand-hover rounded-full px-2 py-0.5">{colTasks.length}</span>
                   </h3>
@@ -790,11 +802,15 @@ function PlannerTab({ addToast }: { addToast: (msg: string, type: 'success' | 'e
 // SHARED COMPONENTS
 // =============================================
 
-function SummaryCard({ emoji, label, value, color }: { emoji: string; label: string; value: string; color: string }) {
+import React from 'react'
+
+function SummaryCard({ icon: Icon, label, value, color }: { icon: React.ElementType; label: string; value: string; color: string }) {
   return (
     <Card padding="md">
       <div className="flex items-center gap-3">
-        <span className="text-xl">{emoji}</span>
+        <div className="w-9 h-9 rounded-full bg-brand-bg-secondary flex items-center justify-center flex-shrink-0">
+          <Icon size={18} strokeWidth={1.5} className={color} />
+        </div>
         <div>
           <p className={`font-inter text-xl font-semibold leading-none ${color}`}>{value}</p>
           <p className="font-inter text-xs text-brand-muted mt-0.5">{label}</p>
@@ -820,10 +836,10 @@ function TaskCard({ task, onEdit, onDelete, onStatusChange, showStatus }: {
 
   const pb = priorityBadge[task.priority]
   const nextStatuses: Record<TaskStatus, { label: string; next: TaskStatus }[]> = {
-    todo: [{ label: '▶ Iniciar', next: 'in_progress' }],
-    in_progress: [{ label: '✓ Concluir', next: 'done' }, { label: '← Voltar', next: 'todo' }],
-    done: [{ label: '↩ Reabrir', next: 'todo' }],
-    cancelled: [{ label: '↩ Reabrir', next: 'todo' }],
+    todo: [{ label: 'Iniciar', next: 'in_progress' }],
+    in_progress: [{ label: 'Concluir', next: 'done' }, { label: 'Voltar', next: 'todo' }],
+    done: [{ label: 'Reabrir', next: 'todo' }],
+    cancelled: [{ label: 'Reabrir', next: 'todo' }],
   }
 
   return (
@@ -847,12 +863,14 @@ function TaskCard({ task, onEdit, onDelete, onStatusChange, showStatus }: {
         {showStatus && <Badge variant="neutral">{taskStatusLabels[task.status]}</Badge>}
       </div>
       {task.due_date && (
-        <p className="font-inter text-xs text-brand-muted mb-2">📅 {formatDateShort(task.due_date)}</p>
+        <p className="font-inter text-xs text-brand-muted mb-2 flex items-center gap-1">
+          <Calendar size={10} /> {formatDateShort(task.due_date)}
+        </p>
       )}
       <div className="flex gap-1 flex-wrap">
         {nextStatuses[task.status].map(({ label, next }) => (
-          <button key={next} onClick={() => onStatusChange(task.id, next)} className="px-2 py-1 text-xs font-inter rounded bg-brand-bg border border-brand-border text-brand-text hover:bg-brand-hover hover:text-brand-gold transition-colors">
-            {label}
+          <button key={next} onClick={() => onStatusChange(task.id, next)} className="px-2 py-1 text-xs font-inter rounded bg-brand-bg border border-brand-border text-brand-text hover:bg-brand-hover transition-colors flex items-center gap-1">
+            <ArrowRight size={10} />{label}
           </button>
         ))}
       </div>
