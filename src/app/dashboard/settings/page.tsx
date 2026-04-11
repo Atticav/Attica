@@ -15,6 +15,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState(false)
 
   const loadProfile = useCallback(async () => {
     const supabase = createClient()
@@ -40,6 +41,7 @@ export default function SettingsPage() {
     e.preventDefault()
     setSaving(true)
     setSaved(false)
+    setSaveError(false)
 
     try {
       const res = await fetch('/api/client/profile', {
@@ -50,9 +52,13 @@ export default function SettingsPage() {
       if (res.ok) {
         setSaved(true)
         setTimeout(() => setSaved(false), 3000)
+      } else {
+        setSaveError(true)
+        setTimeout(() => setSaveError(false), 3000)
       }
     } catch {
-      // silently fail
+      setSaveError(true)
+      setTimeout(() => setSaveError(false), 3000)
     } finally {
       setSaving(false)
     }
@@ -138,6 +144,11 @@ export default function SettingsPage() {
             {saved && (
               <span className="font-inter text-sm text-green-600">
                 ✓ {t.settings.saved}
+              </span>
+            )}
+            {saveError && (
+              <span className="font-inter text-sm text-brand-error">
+                {t.common.error}
               </span>
             )}
           </div>

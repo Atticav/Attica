@@ -210,9 +210,7 @@ export default function PackingPage() {
                 {t.packing.noItems}
               </p>
               <p className="font-outfit text-sm text-brand-muted">
-                {activeFilter === 'all'
-                  ? `${t.packing.noItems}.`
-                  : t.packing.noItems}
+                {t.packing.noItems}
               </p>
             </Card>
           ) : (

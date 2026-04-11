@@ -72,7 +72,7 @@ export default function DashboardPage() {
       supabase.from('trips').select('*').eq('client_id', user.id).order('created_at', { ascending: false }),
     ])
 
-    setFirstName(profile?.full_name?.split(' ')[0] ?? '')
+    setFirstName(profile?.full_name?.split(' ')[0] || '')
     setTrips(tripsData ?? [])
     setLoading(false)
   }, [])
@@ -165,7 +165,7 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="font-cormorant text-4xl font-semibold text-brand-title">
-            {t.dashboard.welcome}, {firstName}
+            {firstName ? `${t.dashboard.welcome}, ${firstName}` : t.dashboard.welcome}
           </h1>
           <p className="font-outfit text-brand-muted mt-1">
             {t.dashboard.welcomeSubtitle}
