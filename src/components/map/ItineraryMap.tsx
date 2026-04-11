@@ -95,7 +95,7 @@ export default function ItineraryMap({ items, destination, country, tripId }: It
       const query = encodeURIComponent(`${location}, ${destination}, ${country}`)
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`,
-        { headers: { 'User-Agent': 'AtticaViagens/1.0' } }
+        { headers: { 'User-Agent': 'AtticaViagens/1.0 (travel-platform)' } }
       )
       const data = await res.json()
       if (data && data.length > 0) {
@@ -119,8 +119,8 @@ export default function ItineraryMap({ items, destination, country, tripId }: It
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ latitude: lat, longitude: lng }),
       })
-    } catch {
-      // Silently fail — not critical
+    } catch (err) {
+      console.warn('Failed to save coordinates:', err)
     }
   }, [tripId])
 
@@ -150,8 +150,8 @@ export default function ItineraryMap({ items, destination, country, tripId }: It
           continue
         }
 
-        // Geocode with rate limiting (200ms delay)
-        await new Promise(resolve => setTimeout(resolve, 200))
+        // Geocode with rate limiting (respect Nominatim 1 req/sec policy)
+        await new Promise(resolve => setTimeout(resolve, 1000))
         if (cancelled) break
 
         const coords = await geocode(item.location)
@@ -268,7 +268,7 @@ export default function ItineraryMap({ items, destination, country, tripId }: It
                   Dia {day}
                   {dayItems[0]?.date && (
                     <span className="font-inter text-xs text-brand-muted ml-2">
-                      {new Date(dayItems[0].date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                      {new Date(dayItems[0].date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
                     </span>
                   )}
                 </span>

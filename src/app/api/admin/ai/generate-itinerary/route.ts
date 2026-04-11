@@ -52,10 +52,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'GROQ_API_KEY não configurada no servidor' }, { status: 500 })
   }
 
-  // Calculate number of days
-  const start = new Date(start_date)
-  const end = new Date(end_date)
-  const numDays = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1)
+  // Calculate number of days (inclusive)
+  const start = new Date(start_date + 'T00:00:00Z')
+  const end = new Date(end_date + 'T00:00:00Z')
+  const numDays = Math.max(1, Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1)
 
   const systemPrompt = `Você é uma curadora de viagens de luxo da Attica Viagens, uma agência brasileira premium. 
 Você cria roteiros elegantes, detalhados e logisticamente inteligentes. 
@@ -121,7 +121,7 @@ Distribua ~4-6 atividades por dia. Pense na logística: agrupe pontos próximos,
       aiItems = JSON.parse(content)
     } catch {
       // Try to extract JSON array from the response text
-      const jsonMatch = content.match(/\[[\s\S]*\]/)
+      const jsonMatch = content.match(/\[[\s\S]*?\]/)
       if (!jsonMatch) {
         console.error('Failed to parse AI response:', content)
         return NextResponse.json({ error: 'Formato de resposta da IA inválido. Tente novamente.' }, { status: 502 })

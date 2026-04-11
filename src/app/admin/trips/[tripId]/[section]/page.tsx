@@ -558,7 +558,7 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
               </p>
               <p className="font-inter text-sm text-brand-text">
                 <span className="font-medium">Período:</span>{' '}
-                {new Date(tripData.start_date).toLocaleDateString('pt-BR')} — {new Date(tripData.end_date).toLocaleDateString('pt-BR')}
+                {new Date(tripData.start_date + 'T12:00:00').toLocaleDateString('pt-BR')} — {new Date(tripData.end_date + 'T12:00:00').toLocaleDateString('pt-BR')}
               </p>
             </div>
           )}
