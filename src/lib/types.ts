@@ -56,6 +56,8 @@ export interface ItineraryItem {
   confirmation_code: string | null
   notes: string | null
   order_index: number
+  latitude?: number | null
+  longitude?: number | null
   created_at: string
   updated_at: string
 }

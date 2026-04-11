@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
   Map,
+  MapPin,
   DollarSign,
   FileText,
   Luggage,
@@ -39,6 +40,7 @@ function buildNavItems(tripId: string): NavItem[] {
   return [
     { href: `/dashboard`, label: 'Início', icon: <LayoutDashboard size={18} strokeWidth={1.5} /> },
     { href: `${base}/itinerary`, label: 'Roteiro', icon: <Map size={18} strokeWidth={1.5} /> },
+    { href: `${base}/map`, label: 'Mapa', icon: <MapPin size={18} strokeWidth={1.5} /> },
     { href: `${base}/financial`, label: 'Financeiro', icon: <DollarSign size={18} strokeWidth={1.5} /> },
     { href: `${base}/documents`, label: 'Documentos', icon: <FileText size={18} strokeWidth={1.5} /> },
     { href: `${base}/packing`, label: 'Mala Inteligente', icon: <Luggage size={18} strokeWidth={1.5} /> },
