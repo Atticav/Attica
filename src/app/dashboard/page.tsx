@@ -142,9 +142,6 @@ export default function DashboardPage() {
             Studio de Viagens
           </p>
 
-          <h1 className="font-cinzel text-white text-4xl md:text-5xl lg:text-6xl font-semibold tracking-wide mb-4">
-            {t.hero.welcome}
-          </h1>
           <p className="font-outfit italic text-white/50 text-sm max-w-md leading-relaxed mb-16">
             {t.hero.subtitle}
           </p>
