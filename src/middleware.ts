@@ -60,10 +60,16 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Redirecionar usuário autenticado de /login para /dashboard
+  // Redirecionar usuário autenticado de /login para a página correta
   if (pathname === '/login' && user) {
+    const { data: loginProfile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
     const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
+    url.pathname = loginProfile?.role === 'admin' ? '/admin' : '/dashboard'
     return NextResponse.redirect(url)
   }
 
