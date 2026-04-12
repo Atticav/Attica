@@ -9,6 +9,7 @@ import {
   Star,
   Award,
   ExternalLink,
+  Clock,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
@@ -158,6 +159,13 @@ export default function RestaurantsPage() {
                   <div className="flex items-start gap-1.5 text-brand-muted">
                     <MapPin size={13} strokeWidth={1.5} className="mt-0.5 flex-shrink-0" />
                     <span className="font-outfit text-xs">{restaurant.address}</span>
+                  </div>
+                )}
+
+                {restaurant.opening_hours && (
+                  <div className="flex items-start gap-1.5 text-brand-muted">
+                    <Clock size={13} strokeWidth={1.5} className="mt-0.5 flex-shrink-0" />
+                    <span className="font-outfit text-xs">{restaurant.opening_hours}</span>
                   </div>
                 )}
 

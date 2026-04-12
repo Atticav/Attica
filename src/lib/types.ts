@@ -252,6 +252,7 @@ export interface Restaurant {
   category: RestaurantCategory
   cuisine: string | null
   address: string | null
+  opening_hours: string | null
   google_maps_url: string | null
   website_url: string | null
   reservation_required: boolean

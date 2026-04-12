@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { Landmark, AlertTriangle } from 'lucide-react'
+import { Landmark, Star } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import Card from '@/components/ui/Card'
@@ -93,7 +93,7 @@ export default function CulturePage() {
                   </h4>
                   {item.is_important && (
                     <Badge variant="warning">
-                      <AlertTriangle size={11} strokeWidth={1.5} className="mr-0.5" />
+                      <Star size={11} strokeWidth={1.5} className="mr-0.5 fill-current" />
                       Importante
                     </Badge>
                   )}
