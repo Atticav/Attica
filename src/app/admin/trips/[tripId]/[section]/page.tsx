@@ -490,6 +490,85 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
           <p className="font-cormorant text-xl text-brand-title mb-2">Nenhum item em {sectionLabel}</p>
           <p className="font-outfit text-sm text-brand-muted">Clique em &quot;Adicionar&quot; para criar o primeiro item</p>
         </Card>
+      ) : section === 'financial' ? (
+        /* Financial Table View */
+        <Card padding="none" className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-brand-border bg-brand-bg">
+                <th className="text-left px-4 py-3 font-inter text-xs font-medium text-brand-muted uppercase tracking-wider">Descrição</th>
+                <th className="text-right px-4 py-3 font-inter text-xs font-medium text-brand-muted uppercase tracking-wider">Valor Estimado</th>
+                <th className="text-right px-4 py-3 font-inter text-xs font-medium text-brand-muted uppercase tracking-wider">Valor Real</th>
+                <th className="text-center px-4 py-3 font-inter text-xs font-medium text-brand-muted uppercase tracking-wider">Pago</th>
+                <th className="text-right px-4 py-3 font-inter text-xs font-medium text-brand-muted uppercase tracking-wider">Diferença</th>
+                <th className="text-right px-4 py-3 font-inter text-xs font-medium text-brand-muted uppercase tracking-wider">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-brand-border">
+              {items.map((item) => {
+                const estimated = Number(item.amount) || 0
+                const actual = Number(item.amount_brl) || 0
+                const diff = actual - estimated
+                const isPaid = item.status === 'paid'
+                return (
+                  <tr key={String(item.id)} className="hover:bg-brand-bg transition-colors">
+                    <td className="px-4 py-3">
+                      <p className="font-outfit text-sm text-brand-title">{String(item.description || '—')}</p>
+                      <p className="font-inter text-xs text-brand-muted">{tl(String(item.category || 'other'))}</p>
+                    </td>
+                    <td className="px-4 py-3 text-right font-inter text-sm text-brand-text">
+                      R$ {estimated.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-4 py-3 text-right font-inter text-sm text-brand-text">
+                      R$ {actual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`inline-block px-2 py-0.5 rounded-full font-inter text-xs font-medium ${isPaid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {isPaid ? 'Sim' : 'Não'}
+                      </span>
+                    </td>
+                    <td className={`px-4 py-3 text-right font-inter text-sm font-medium ${diff > 0 ? 'text-red-600' : diff < 0 ? 'text-green-600' : 'text-brand-muted'}`}>
+                      {diff !== 0 ? `${diff > 0 ? '+' : ''}R$ ${diff.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button onClick={() => openEdit(item)} className="p-1.5 text-brand-muted hover:text-brand-gold hover:bg-brand-bg-secondary rounded-lg transition-all" title="Editar">
+                          <Edit2 size={14} strokeWidth={1.5} />
+                        </button>
+                        <button onClick={() => setDeleteItemId(String(item.id))} className="p-1.5 text-brand-muted hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Excluir">
+                          <Trash2 size={14} strokeWidth={1.5} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+            <tfoot>
+              <tr className="border-t-2 border-brand-border bg-brand-bg">
+                <td className="px-4 py-3 font-inter text-sm font-semibold text-brand-title">TOTAL</td>
+                <td className="px-4 py-3 text-right font-inter text-sm font-semibold text-brand-title">
+                  R$ {items.reduce((s, i) => s + (Number(i.amount) || 0), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </td>
+                <td className="px-4 py-3 text-right font-inter text-sm font-semibold text-brand-title">
+                  R$ {items.reduce((s, i) => s + (Number(i.amount_brl) || 0), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </td>
+                <td className="px-4 py-3" />
+                <td className="px-4 py-3 text-right font-inter text-sm font-semibold text-brand-title">
+                  {(() => {
+                    const totalDiff = items.reduce((s, i) => s + ((Number(i.amount_brl) || 0) - (Number(i.amount) || 0)), 0)
+                    return totalDiff !== 0
+                      ? <span className={totalDiff > 0 ? 'text-red-600' : 'text-green-600'}>
+                          {totalDiff > 0 ? '+' : ''}R$ {totalDiff.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                      : '—'
+                  })()}
+                </td>
+                <td className="px-4 py-3" />
+              </tr>
+            </tfoot>
+          </table>
+        </Card>
       ) : (
         <div className="space-y-3">
           {items.map((item) => {

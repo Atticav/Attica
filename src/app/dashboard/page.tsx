@@ -61,6 +61,7 @@ export default function DashboardPage() {
   const [firstName, setFirstName] = useState('')
   const [trips, setTrips] = useState<Trip[]>([])
   const [loading, setLoading] = useState(true)
+  const [financialSummary, setFinancialSummary] = useState<{ totalEstimated: number; totalActual: number } | null>(null)
 
   const loadData = useCallback(async () => {
     const supabase = createClient()
@@ -74,6 +75,22 @@ export default function DashboardPage() {
 
     setFirstName(profile?.full_name?.split(' ')[0] || '')
     setTrips(tripsData ?? [])
+
+    // Load financial summary for active trip
+    const activeTrip = tripsData?.[0]
+    if (activeTrip) {
+      const { data: financialItems } = await supabase
+        .from('financial_items')
+        .select('amount, amount_brl')
+        .eq('trip_id', activeTrip.id)
+
+      if (financialItems && financialItems.length > 0) {
+        const totalEstimated = financialItems.reduce((sum, item) => sum + (item.amount || 0), 0)
+        const totalActual = financialItems.reduce((sum, item) => sum + (item.amount_brl || 0), 0)
+        setFinancialSummary({ totalEstimated, totalActual })
+      }
+    }
+
     setLoading(false)
   }, [])
 
@@ -281,6 +298,43 @@ export default function DashboardPage() {
                 </div>
               </Card>
             )}
+          </div>
+        )}
+
+        {/* Financial Summary Cards */}
+        {activeTrip && financialSummary && (financialSummary.totalEstimated > 0 || financialSummary.totalActual > 0) && (
+          <div className="mb-10">
+            <h2 className="font-cormorant text-2xl font-semibold text-brand-title mb-4">
+              Resumo Financeiro
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Card padding="md" className="bg-gradient-to-br from-brand-gold/5 to-amber-50 border-brand-gold/20">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-brand-gold/20 flex items-center justify-center flex-shrink-0">
+                    <DollarSign size={20} strokeWidth={1.5} className="text-brand-gold" />
+                  </div>
+                  <div>
+                    <p className="font-inter text-xs text-brand-muted">Total Estimado</p>
+                    <p className="font-cormorant text-2xl font-semibold text-brand-title">
+                      R$ {financialSummary.totalEstimated.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+              <Card padding="md" className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                    <DollarSign size={20} strokeWidth={1.5} className="text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-inter text-xs text-brand-muted">Total Real</p>
+                    <p className="font-cormorant text-2xl font-semibold text-brand-title">
+                      R$ {financialSummary.totalActual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </div>
         )}
 
