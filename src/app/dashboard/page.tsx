@@ -29,7 +29,10 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { getDestinationInfo } from '@/lib/destination-data'
+import { getDestinationData } from '@/lib/utils'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import WeatherWidget from '@/components/widgets/WeatherWidget'
+import CurrencyWidget from '@/components/widgets/CurrencyWidget'
 import type { Trip } from '@/lib/types'
 
 type SectionSlug = 'itinerary' | 'financial' | 'documents' | 'packing' | 'checklist' | 'strategic' | 'guide' | 'gallery' | 'restaurants' | 'photography' | 'culture' | 'vocabulary' | 'contract'
@@ -100,6 +103,9 @@ export default function DashboardPage() {
   const destinationInfo = activeTrip
     ? getDestinationInfo(activeTrip.destination, activeTrip.country)
     : null
+  const destinationData = activeTrip
+    ? getDestinationData(activeTrip.destination) || getDestinationData(activeTrip.country)
+    : undefined
   const daysUntilTrip = activeTrip?.start_date
     ? Math.ceil((new Date(activeTrip.start_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null
@@ -298,6 +304,27 @@ export default function DashboardPage() {
                 </div>
               </Card>
             )}
+          </div>
+        )}
+
+        {/* Weather & Currency Widgets */}
+        {activeTrip && destinationData && (
+          <div className="mb-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {destinationData.latitude && destinationData.longitude && (
+                <WeatherWidget
+                  latitude={destinationData.latitude}
+                  longitude={destinationData.longitude}
+                  destinationName={activeTrip.destination}
+                />
+              )}
+              {destinationData.currency && (
+                <CurrencyWidget
+                  currencyCode={destinationData.currency}
+                  currencyName={destinationData.currency}
+                />
+              )}
+            </div>
           </div>
         )}
 
