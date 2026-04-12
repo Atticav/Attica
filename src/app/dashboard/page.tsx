@@ -26,6 +26,7 @@ import {
   Clock,
   Sun,
   Plane as PlaneIcon,
+  Star,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { getDestinationInfo } from '@/lib/destination-data'
@@ -411,7 +412,7 @@ export default function DashboardPage() {
             <Card padding="md" className="bg-gradient-to-r from-brand-gold/10 to-amber-50 border-brand-gold/30 hover:shadow-card hover:border-brand-gold/50 transition-all cursor-pointer">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full bg-brand-gold/20 flex items-center justify-center flex-shrink-0">
-                  <span className="text-2xl">⭐</span>
+                  <Star size={24} strokeWidth={1.3} className="text-brand-gold" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-cormorant text-lg font-semibold text-brand-title">
