@@ -214,13 +214,13 @@ export default function ClientSidebar({
       {/* Rodapé */}
       <div className="px-4 py-4 border-t border-brand-border">
         {/* Language Selector */}
-        <div className="flex items-center gap-1 mb-3">
+        <div className="grid grid-cols-5 gap-1 mb-3">
           {LANGUAGES.map((lang) => (
             <button
               key={lang.code}
               onClick={() => setLanguage(lang.code)}
               className={cn(
-                'flex items-center gap-1 px-2 py-1.5 rounded-md font-inter text-xs transition-all',
+                'flex items-center justify-center px-1 py-1.5 rounded-md font-inter text-xs transition-all',
                 language === lang.code
                   ? 'border border-brand-gold bg-brand-hover text-brand-gold-dark font-medium'
                   : 'border border-transparent text-brand-muted hover:bg-brand-bg hover:text-brand-text'
@@ -228,7 +228,6 @@ export default function ClientSidebar({
               title={lang.label}
             >
               <span className="text-sm">{lang.flag}</span>
-              <span className="hidden sm:inline">{lang.label}</span>
             </button>
           ))}
         </div>

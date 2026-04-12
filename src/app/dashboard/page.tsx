@@ -318,6 +318,33 @@ export default function DashboardPage() {
             })}
           </div>
         </div>
+
+        {/* Feedback Widget */}
+        <div className="mt-10">
+          <a
+            href="https://tally.so/r/rj6PMR"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block"
+          >
+            <Card padding="md" className="bg-gradient-to-r from-brand-gold/10 to-amber-50 border-brand-gold/30 hover:shadow-card hover:border-brand-gold/50 transition-all cursor-pointer">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-brand-gold/20 flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl">⭐</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-cormorant text-lg font-semibold text-brand-title">
+                    Avalie sua experiência
+                  </h3>
+                  <p className="font-outfit text-sm text-brand-muted">
+                    Sua opinião é muito importante para nós. Conte como está sendo sua experiência com a Attica!
+                  </p>
+                </div>
+                <ChevronDown size={20} strokeWidth={1.5} className="text-brand-gold -rotate-90 flex-shrink-0" />
+              </div>
+            </Card>
+          </a>
+        </div>
       </div>
     </>
   )

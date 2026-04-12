@@ -9,6 +9,58 @@ import { ToastContainer } from '@/components/ui/Toast'
 import { ArrowLeft, Plus, Edit2, Trash2, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 
+const OPTION_LABELS: Record<string, string> = {
+  // Itinerary categories
+  flight: 'Voo',
+  hotel: 'Hotel',
+  transfer: 'Transfer',
+  tour: 'Passeio',
+  restaurant: 'Restaurante',
+  activity: 'Atividade',
+  other: 'Outro',
+  // Financial types
+  income: 'Receita',
+  expense: 'Despesa',
+  // Financial categories
+  food: 'Alimentação',
+  shopping: 'Compras',
+  insurance: 'Seguro',
+  visa: 'Visto',
+  // Financial / Contract status
+  pending: 'Pendente',
+  paid: 'Pago',
+  refunded: 'Reembolsado',
+  // Document types
+  passport: 'Passaporte',
+  ticket: 'Passagem',
+  voucher: 'Voucher',
+  // Packing categories
+  clothing: 'Roupa',
+  documents: 'Documento',
+  health: 'Saúde',
+  electronics: 'Eletrônico',
+  toiletries: 'Higiene',
+  accessories: 'Acessório',
+  // Restaurant categories
+  fine_dining: 'Alta Gastronomia',
+  casual: 'Casual',
+  street_food: 'Comida de Rua',
+  cafe: 'Café',
+  bar: 'Bar',
+  // Gallery types
+  photo: 'Foto',
+  video: 'Vídeo',
+  // Guide types
+  youtube: 'YouTube',
+  pdf: 'PDF',
+  link: 'Link',
+  // Contract status
+  draft: 'Rascunho',
+  sent: 'Enviado',
+  signed: 'Assinado',
+  cancelled: 'Cancelado',
+}
+
 const SECTION_LABELS: Record<string, string> = {
   itinerary: 'Roteiro',
   financial: 'Financeiro',
@@ -25,6 +77,10 @@ const SECTION_LABELS: Record<string, string> = {
   contract: 'Contrato',
 }
 
+function tl(value: string): string {
+  return OPTION_LABELS[value] || value
+}
+
 function getDisplayFields(section: string, item: Record<string, unknown>): { label: string; value: string }[] {
   const fields: { label: string; value: string }[] = []
 
@@ -32,22 +88,22 @@ function getDisplayFields(section: string, item: Record<string, unknown>): { lab
     case 'itinerary':
       if (item.day_number) fields.push({ label: 'Dia', value: String(item.day_number) })
       if (item.title) fields.push({ label: 'Título', value: String(item.title) })
-      if (item.category) fields.push({ label: 'Categoria', value: String(item.category) })
+      if (item.category) fields.push({ label: 'Categoria', value: tl(String(item.category)) })
       if (item.time) fields.push({ label: 'Horário', value: String(item.time) })
       break
     case 'financial':
       if (item.description) fields.push({ label: 'Descrição', value: String(item.description) })
       if (item.amount) fields.push({ label: 'Valor', value: `${item.currency || ''} ${item.amount}` })
-      if (item.status) fields.push({ label: 'Status', value: String(item.status) })
+      if (item.status) fields.push({ label: 'Status', value: tl(String(item.status)) })
       break
     case 'documents':
       if (item.title) fields.push({ label: 'Título', value: String(item.title) })
-      if (item.type) fields.push({ label: 'Tipo', value: String(item.type) })
+      if (item.type) fields.push({ label: 'Tipo', value: tl(String(item.type)) })
       if (item.expiry_date) fields.push({ label: 'Validade', value: new Date(String(item.expiry_date)).toLocaleDateString('pt-BR') })
       break
     case 'packing':
       if (item.item_name) fields.push({ label: 'Item', value: String(item.item_name) })
-      if (item.category) fields.push({ label: 'Categoria', value: String(item.category) })
+      if (item.category) fields.push({ label: 'Categoria', value: tl(String(item.category)) })
       if (item.quantity) fields.push({ label: 'Qtd', value: String(item.quantity) })
       break
     case 'checklist':
@@ -61,17 +117,17 @@ function getDisplayFields(section: string, item: Record<string, unknown>): { lab
       break
     case 'guide':
       if (item.title) fields.push({ label: 'Título', value: String(item.title) })
-      if (item.type) fields.push({ label: 'Tipo', value: String(item.type) })
+      if (item.type) fields.push({ label: 'Tipo', value: tl(String(item.type)) })
       if (item.url) fields.push({ label: 'URL', value: String(item.url).length > 40 ? String(item.url).slice(0, 40) + '...' : String(item.url) })
       break
     case 'gallery':
       if (item.title) fields.push({ label: 'Título', value: String(item.title || '—') })
-      if (item.type) fields.push({ label: 'Tipo', value: String(item.type) })
+      if (item.type) fields.push({ label: 'Tipo', value: tl(String(item.type)) })
       if (item.location) fields.push({ label: 'Local', value: String(item.location) })
       break
     case 'restaurants':
       if (item.name) fields.push({ label: 'Nome', value: String(item.name) })
-      if (item.category) fields.push({ label: 'Categoria', value: String(item.category) })
+      if (item.category) fields.push({ label: 'Categoria', value: tl(String(item.category)) })
       if (item.cuisine) fields.push({ label: 'Cozinha', value: String(item.cuisine) })
       break
     case 'photography':
@@ -90,7 +146,7 @@ function getDisplayFields(section: string, item: Record<string, unknown>): { lab
       break
     case 'contract':
       if (item.title) fields.push({ label: 'Título', value: String(item.title) })
-      if (item.status) fields.push({ label: 'Status', value: String(item.status) })
+      if (item.status) fields.push({ label: 'Status', value: tl(String(item.status)) })
       break
     default:
       Object.entries(item).forEach(([key, value]) => {
@@ -187,6 +243,7 @@ function getFormFields(section: string): { name: string; label: string; type?: s
         { name: 'name', label: 'Nome', required: true },
         { name: 'category', label: 'Categoria', options: ['fine_dining', 'casual', 'street_food', 'cafe', 'bar', 'other'] },
         { name: 'cuisine', label: 'Cozinha' },
+        { name: 'opening_hours', label: 'Horário de funcionamento' },
         { name: 'address', label: 'Endereço' },
         { name: 'google_maps_url', label: 'Google Maps URL' },
         { name: 'website_url', label: 'Website' },
@@ -209,8 +266,8 @@ function getFormFields(section: string): { name: string; label: string; type?: s
     case 'culture':
       return [
         { name: 'title', label: 'Título', required: true },
-        { name: 'category', label: 'Categoria', required: true },
-        { name: 'content', label: 'Conteúdo', required: true },
+        { name: 'category', label: 'Categoria', options: ['Costumes', 'Gastronomia', 'Religião', 'Etiqueta', 'História', 'Transporte', 'Segurança', 'Clima', 'Moeda', 'Outros'], required: true },
+        { name: 'content', label: 'Conteúdo', type: 'textarea', required: true },
         { name: 'is_important', label: 'Importante', type: 'checkbox' },
         { name: 'order_index', label: 'Ordem', type: 'number' },
       ]
@@ -488,7 +545,7 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
                       className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all"
                     >
                       <option value="">Selecione...</option>
-                      {field.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                      {field.options.map(opt => <option key={opt} value={opt}>{OPTION_LABELS[opt] || opt}</option>)}
                     </select>
                   </div>
                 )
@@ -504,6 +561,20 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
                       className="w-4 h-4 accent-brand-gold"
                     />
                     <label htmlFor={field.name} className="font-inter text-sm text-brand-text">{field.label}</label>
+                  </div>
+                )
+              }
+              if (field.type === 'textarea') {
+                return (
+                  <div key={field.name} className="flex flex-col gap-1.5 sm:col-span-2">
+                    <label className="font-inter text-sm font-medium text-brand-text">{field.label}{field.required && ' *'}</label>
+                    <textarea
+                      value={formData[field.name] || ''}
+                      onChange={(e) => setFormData(p => ({ ...p, [field.name]: e.target.value }))}
+                      rows={6}
+                      placeholder={field.label}
+                      className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all resize-y"
+                    />
                   </div>
                 )
               }
