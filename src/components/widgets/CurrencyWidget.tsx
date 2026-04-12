@@ -30,8 +30,6 @@ function CurrencyIcon({ className }: { className?: string }) {
     >
       <path d="M3 8h14l-4-4" />
       <path d="M21 16H7l4 4" />
-      <circle cx="17" cy="8" r="0" />
-      <circle cx="7" cy="16" r="0" />
     </svg>
   )
 }

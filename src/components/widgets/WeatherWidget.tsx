@@ -94,8 +94,8 @@ function FogIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.3} strokeLinecap="round" strokeLinejoin="round" className={className}>
       <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />
-      <line x1="6" y1="22" x2="18" y2="22" />
-      <line x1="8" y1="24" x2="16" y2="24" />
+      <line x1="6" y1="21" x2="18" y2="21" />
+      <line x1="8" y1="23" x2="16" y2="23" />
     </svg>
   )
 }
