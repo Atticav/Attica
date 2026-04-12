@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 
 interface Trip {
   id: string
@@ -64,6 +65,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
     show_map_button: true,
   })
   const [savingWidgets, setSavingWidgets] = useState(false)
+  const [uploadingCover, setUploadingCover] = useState(false)
   const [toasts, setToasts] = useState<{ id: string; message: string; type: 'success' | 'error' | 'info' }[]>([])
 
   const addToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -113,6 +115,19 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
   }, [tripId])
 
   useEffect(() => { loadTrip() }, [loadTrip])
+
+  useEffect(() => {
+    if (form.start_date && form.end_date) {
+      const start = new Date(form.start_date)
+      const end = new Date(form.end_date)
+      const days = Math.ceil((end.getTime() - start.getTime()) / 86400000) + 1
+      setWidgetForm(p => ({ ...p, ideal_duration: `${days} ${days === 1 ? 'dia' : 'dias'}` }))
+    } else if (form.start_date) {
+      setWidgetForm(p => ({ ...p, ideal_duration: '1 dia' }))
+    } else {
+      setWidgetForm(p => ({ ...p, ideal_duration: '' }))
+    }
+  }, [form.start_date, form.end_date])
 
   async function handleSaveWidgets() {
     setSavingWidgets(true)
@@ -169,6 +184,33 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
     } catch {
       addToast('Erro ao excluir viagem', 'error')
       setDeleteModalOpen(false)
+    }
+  }
+
+  async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingCover(true)
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase()
+      if (!ext || !['jpg', 'jpeg', 'png', 'webp'].includes(ext)) {
+        addToast('Formato de imagem não suportado', 'error')
+        setUploadingCover(false)
+        return
+      }
+      const path = `${tripId}/cover.${ext}`
+      const supabase = createSupabaseClient()
+      const { error: uploadError } = await supabase.storage
+        .from('trip-covers')
+        .upload(path, file, { upsert: true })
+      if (uploadError) throw uploadError
+      const { data: urlData } = supabase.storage.from('trip-covers').getPublicUrl(path)
+      setForm(p => ({ ...p, cover_image_url: urlData.publicUrl }))
+      addToast('Imagem enviada!', 'success')
+    } catch (err: unknown) {
+      addToast(err instanceof Error ? err.message : 'Erro ao enviar imagem', 'error')
+    } finally {
+      setUploadingCover(false)
     }
   }
 
@@ -236,7 +278,18 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
           </div>
           <Input label="Data de início" type="date" value={form.start_date} onChange={(e) => setForm(p => ({ ...p, start_date: e.target.value }))} />
           <Input label="Data de fim" type="date" value={form.end_date} onChange={(e) => setForm(p => ({ ...p, end_date: e.target.value }))} />
-          <Input label="URL da imagem de capa" value={form.cover_image_url} onChange={(e) => setForm(p => ({ ...p, cover_image_url: e.target.value }))} placeholder="https://..." className="md:col-span-2" />
+          <div className="flex flex-col gap-1.5 md:col-span-2">
+            <label className="font-inter text-sm font-medium text-brand-text">Imagem de capa</label>
+            {form.cover_image_url && (
+              <div className="relative w-full h-40 rounded-lg overflow-hidden border border-brand-border mb-2">
+                <img src={form.cover_image_url} alt="Capa da viagem" className="w-full h-full object-cover" />
+              </div>
+            )}
+            <label className={`flex items-center gap-3 px-4 py-3 rounded-lg border border-dashed border-brand-border bg-brand-bg cursor-pointer hover:border-brand-gold/50 transition-colors ${uploadingCover ? 'opacity-60 cursor-not-allowed' : ''}`}>
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={uploadingCover} onChange={handleCoverUpload} />
+              <span className="font-outfit text-sm text-brand-muted">{uploadingCover ? 'Enviando...' : form.cover_image_url ? 'Trocar imagem' : 'Clique para selecionar uma imagem'}</span>
+            </label>
+          </div>
           <div className="flex flex-col gap-1.5 md:col-span-2">
             <label className="font-inter text-sm font-medium text-brand-text">Notas</label>
             <textarea
@@ -272,21 +325,20 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
               className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all"
             >
               <option value="">Selecionar...</option>
-              <option value="Cultural">Cultural</option>
               <option value="Aventura">Aventura</option>
-              <option value="Gastronômico">Gastronômico</option>
-              <option value="Relaxamento">Relaxamento</option>
-              <option value="Família">Família</option>
+              <option value="Luxo">Luxo</option>
               <option value="Romântico">Romântico</option>
-              <option value="Business">Business</option>
+              <option value="Família">Família</option>
+              <option value="Descanso">Descanso</option>
+              <option value="Equilíbrio">Equilíbrio</option>
             </select>
           </div>
-          <Input
-            label="Duração ideal"
-            value={widgetForm.ideal_duration}
-            onChange={(e) => setWidgetForm(p => ({ ...p, ideal_duration: e.target.value }))}
-            placeholder="Ex: 7 dias, 10 a 14 dias"
-          />
+          <div className="flex flex-col gap-1.5">
+            <label className="font-inter text-sm font-medium text-brand-text">Duração ideal</label>
+            <div className="w-full rounded-lg border border-brand-border font-outfit text-sm bg-brand-bg-secondary px-4 py-3 min-h-[48px] text-brand-text">
+              {widgetForm.ideal_duration ? widgetForm.ideal_duration : <span className="text-brand-muted">Preencha as datas da viagem</span>}
+            </div>
+          </div>
           <div className="flex flex-col gap-1.5 md:col-span-2">
             <label className="font-inter text-sm font-medium text-brand-text">Notas personalizadas</label>
             <textarea
