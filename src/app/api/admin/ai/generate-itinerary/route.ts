@@ -103,7 +103,16 @@ Distribua ~4-6 atividades por dia. Pense na logística: agrupe pontos próximos,
 
     if (!groqRes.ok) {
       const errText = await groqRes.text()
-      console.error('Groq API error:', errText)
+      console.error('Groq API error:', groqRes.status, errText)
+      if (groqRes.status === 401) {
+        return NextResponse.json({ error: 'Chave de API da IA inválida ou expirada. Verifique a GROQ_API_KEY.' }, { status: 502 })
+      }
+      if (groqRes.status === 429) {
+        return NextResponse.json({ error: 'Limite de requisições da IA atingido. Aguarde um momento e tente novamente.' }, { status: 502 })
+      }
+      if (groqRes.status === 404) {
+        return NextResponse.json({ error: 'Modelo de IA não encontrado. Verifique a configuração do servidor.' }, { status: 502 })
+      }
       return NextResponse.json({ error: 'Erro ao comunicar com a IA. Tente novamente.' }, { status: 502 })
     }
 
@@ -121,7 +130,7 @@ Distribua ~4-6 atividades por dia. Pense na logística: agrupe pontos próximos,
       aiItems = JSON.parse(content)
     } catch {
       // Try to extract JSON array from the response text
-      const jsonMatch = content.match(/\[[\s\S]*?\]/)
+      const jsonMatch = content.match(/\[[\s\S]*\]/)
       if (!jsonMatch) {
         console.error('Failed to parse AI response:', content)
         return NextResponse.json({ error: 'Formato de resposta da IA inválido. Tente novamente.' }, { status: 502 })

@@ -6,8 +6,60 @@ import Card from '@/components/ui/Card'
 import Modal from '@/components/ui/Modal'
 import Input from '@/components/ui/Input'
 import { ToastContainer } from '@/components/ui/Toast'
-import { ArrowLeft, Plus, Edit2, Trash2, Sparkles } from 'lucide-react'
+import { ArrowLeft, Plus, Edit2, Trash2, Sparkles, Copy } from 'lucide-react'
 import Link from 'next/link'
+
+const OPTION_LABELS: Record<string, string> = {
+  // Itinerary categories
+  flight: 'Voo',
+  hotel: 'Hotel',
+  transfer: 'Transfer',
+  tour: 'Passeio',
+  restaurant: 'Restaurante',
+  activity: 'Atividade',
+  other: 'Outro',
+  // Financial types
+  income: 'Receita',
+  expense: 'Despesa',
+  // Financial categories
+  food: 'Alimentação',
+  shopping: 'Compras',
+  insurance: 'Seguro',
+  visa: 'Visto',
+  // Financial / Contract status
+  pending: 'Pendente',
+  paid: 'Pago',
+  refunded: 'Reembolsado',
+  // Document types
+  passport: 'Passaporte',
+  ticket: 'Passagem',
+  voucher: 'Voucher',
+  // Packing categories
+  clothing: 'Roupa',
+  documents: 'Documento',
+  health: 'Saúde',
+  electronics: 'Eletrônico',
+  toiletries: 'Higiene',
+  accessories: 'Acessório',
+  // Restaurant categories
+  fine_dining: 'Alta Gastronomia',
+  casual: 'Casual',
+  street_food: 'Comida de Rua',
+  cafe: 'Café',
+  bar: 'Bar',
+  // Gallery types
+  photo: 'Foto',
+  video: 'Vídeo',
+  // Guide types
+  youtube: 'YouTube',
+  pdf: 'PDF',
+  link: 'Link',
+  // Contract status
+  draft: 'Rascunho',
+  sent: 'Enviado',
+  signed: 'Assinado',
+  cancelled: 'Cancelado',
+}
 
 const SECTION_LABELS: Record<string, string> = {
   itinerary: 'Roteiro',
@@ -25,6 +77,10 @@ const SECTION_LABELS: Record<string, string> = {
   contract: 'Contrato',
 }
 
+function tl(value: string): string {
+  return OPTION_LABELS[value] || value
+}
+
 function getDisplayFields(section: string, item: Record<string, unknown>): { label: string; value: string }[] {
   const fields: { label: string; value: string }[] = []
 
@@ -32,22 +88,22 @@ function getDisplayFields(section: string, item: Record<string, unknown>): { lab
     case 'itinerary':
       if (item.day_number) fields.push({ label: 'Dia', value: String(item.day_number) })
       if (item.title) fields.push({ label: 'Título', value: String(item.title) })
-      if (item.category) fields.push({ label: 'Categoria', value: String(item.category) })
+      if (item.category) fields.push({ label: 'Categoria', value: tl(String(item.category)) })
       if (item.time) fields.push({ label: 'Horário', value: String(item.time) })
       break
     case 'financial':
       if (item.description) fields.push({ label: 'Descrição', value: String(item.description) })
       if (item.amount) fields.push({ label: 'Valor', value: `${item.currency || ''} ${item.amount}` })
-      if (item.status) fields.push({ label: 'Status', value: String(item.status) })
+      if (item.status) fields.push({ label: 'Status', value: tl(String(item.status)) })
       break
     case 'documents':
       if (item.title) fields.push({ label: 'Título', value: String(item.title) })
-      if (item.type) fields.push({ label: 'Tipo', value: String(item.type) })
+      if (item.type) fields.push({ label: 'Tipo', value: tl(String(item.type)) })
       if (item.expiry_date) fields.push({ label: 'Validade', value: new Date(String(item.expiry_date)).toLocaleDateString('pt-BR') })
       break
     case 'packing':
       if (item.item_name) fields.push({ label: 'Item', value: String(item.item_name) })
-      if (item.category) fields.push({ label: 'Categoria', value: String(item.category) })
+      if (item.category) fields.push({ label: 'Categoria', value: tl(String(item.category)) })
       if (item.quantity) fields.push({ label: 'Qtd', value: String(item.quantity) })
       break
     case 'checklist':
@@ -61,17 +117,17 @@ function getDisplayFields(section: string, item: Record<string, unknown>): { lab
       break
     case 'guide':
       if (item.title) fields.push({ label: 'Título', value: String(item.title) })
-      if (item.type) fields.push({ label: 'Tipo', value: String(item.type) })
+      if (item.type) fields.push({ label: 'Tipo', value: tl(String(item.type)) })
       if (item.url) fields.push({ label: 'URL', value: String(item.url).length > 40 ? String(item.url).slice(0, 40) + '...' : String(item.url) })
       break
     case 'gallery':
       if (item.title) fields.push({ label: 'Título', value: String(item.title || '—') })
-      if (item.type) fields.push({ label: 'Tipo', value: String(item.type) })
+      if (item.type) fields.push({ label: 'Tipo', value: tl(String(item.type)) })
       if (item.location) fields.push({ label: 'Local', value: String(item.location) })
       break
     case 'restaurants':
       if (item.name) fields.push({ label: 'Nome', value: String(item.name) })
-      if (item.category) fields.push({ label: 'Categoria', value: String(item.category) })
+      if (item.category) fields.push({ label: 'Categoria', value: tl(String(item.category)) })
       if (item.cuisine) fields.push({ label: 'Cozinha', value: String(item.cuisine) })
       break
     case 'photography':
@@ -90,7 +146,7 @@ function getDisplayFields(section: string, item: Record<string, unknown>): { lab
       break
     case 'contract':
       if (item.title) fields.push({ label: 'Título', value: String(item.title) })
-      if (item.status) fields.push({ label: 'Status', value: String(item.status) })
+      if (item.status) fields.push({ label: 'Status', value: tl(String(item.status)) })
       break
     default:
       Object.entries(item).forEach(([key, value]) => {
@@ -187,6 +243,7 @@ function getFormFields(section: string): { name: string; label: string; type?: s
         { name: 'name', label: 'Nome', required: true },
         { name: 'category', label: 'Categoria', options: ['fine_dining', 'casual', 'street_food', 'cafe', 'bar', 'other'] },
         { name: 'cuisine', label: 'Cozinha' },
+        { name: 'opening_hours', label: 'Horário de funcionamento' },
         { name: 'address', label: 'Endereço' },
         { name: 'google_maps_url', label: 'Google Maps URL' },
         { name: 'website_url', label: 'Website' },
@@ -209,8 +266,8 @@ function getFormFields(section: string): { name: string; label: string; type?: s
     case 'culture':
       return [
         { name: 'title', label: 'Título', required: true },
-        { name: 'category', label: 'Categoria', required: true },
-        { name: 'content', label: 'Conteúdo', required: true },
+        { name: 'category', label: 'Categoria', options: ['Costumes', 'Gastronomia', 'Religião', 'Etiqueta', 'História', 'Transporte', 'Segurança', 'Clima', 'Moeda', 'Outros'], required: true },
+        { name: 'content', label: 'Conteúdo', type: 'textarea', required: true },
         { name: 'is_important', label: 'Importante', type: 'checkbox' },
         { name: 'order_index', label: 'Ordem', type: 'number' },
       ]
@@ -233,6 +290,27 @@ function getFormFields(section: string): { name: string; label: string; type?: s
     default:
       return [{ name: 'title', label: 'Título', required: true }]
   }
+}
+
+const TEMPLATE_SECTIONS = ['packing', 'checklist', 'strategic', 'guide', 'photography', 'vocabulary']
+
+function getTableName(section: string): string {
+  const tableMap: Record<string, string> = {
+    itinerary: 'itinerary_items',
+    financial: 'financial_items',
+    documents: 'documents',
+    packing: 'packing_items',
+    checklist: 'checklist_items',
+    strategic: 'strategic_sections',
+    guide: 'tutorials',
+    gallery: 'gallery_items',
+    restaurants: 'restaurants',
+    photography: 'photography_tips',
+    culture: 'cultural_info',
+    vocabulary: 'vocabulary',
+    contract: 'contracts',
+  }
+  return tableMap[section] || section
 }
 
 export default function SectionPage({ params }: { params: Promise<{ tripId: string; section: string }> }) {
@@ -317,6 +395,35 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
   }
 
   const formFields = getFormFields(section)
+
+  async function applyTemplate() {
+    const templateTable = `template_${section}`
+    const supabase = (await import('@/lib/supabase/client')).createClient()
+
+    const { data: templateItems, error: fetchError } = await supabase
+      .from(templateTable)
+      .select('*')
+      .order('order_index', { ascending: true })
+
+    if (fetchError || !templateItems || templateItems.length === 0) {
+      addToast('Nenhum template encontrado para esta seção', 'info')
+      return
+    }
+
+    const sectionTable = getTableName(section)
+    const itemsToInsert = templateItems.map(({ id: _id, created_at: _ca, updated_at: _ua, ...rest }) => {
+      return { ...rest, trip_id: tripId }
+    })
+
+    const { error: insertError } = await supabase.from(sectionTable).insert(itemsToInsert)
+
+    if (insertError) {
+      addToast('Erro ao aplicar template', 'error')
+    } else {
+      addToast(`✅ ${itemsToInsert.length} itens do template aplicados!`, 'success')
+      loadItems()
+    }
+  }
 
   function openCreate() {
     setEditItem(null)
@@ -415,6 +522,15 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
                 Gerar com IA
               </button>
             )}
+            {TEMPLATE_SECTIONS.includes(section) && (
+              <button
+                onClick={applyTemplate}
+                className="flex items-center gap-2 px-4 py-2.5 border border-brand-gold text-brand-gold rounded-lg font-inter text-sm font-medium hover:bg-brand-gold hover:text-white transition-colors"
+              >
+                <Copy size={16} strokeWidth={1.5} />
+                Aplicar Template
+              </button>
+            )}
             <button
               onClick={openCreate}
               className="flex items-center gap-2 px-4 py-2.5 bg-brand-gold text-white rounded-lg font-inter text-sm font-medium hover:bg-brand-gold-dark transition-colors"
@@ -432,6 +548,85 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
         <Card padding="lg" className="text-center">
           <p className="font-cormorant text-xl text-brand-title mb-2">Nenhum item em {sectionLabel}</p>
           <p className="font-outfit text-sm text-brand-muted">Clique em &quot;Adicionar&quot; para criar o primeiro item</p>
+        </Card>
+      ) : section === 'financial' ? (
+        /* Financial Table View */
+        <Card padding="none" className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-brand-border bg-brand-bg">
+                <th className="text-left px-4 py-3 font-inter text-xs font-medium text-brand-muted uppercase tracking-wider">Descrição</th>
+                <th className="text-right px-4 py-3 font-inter text-xs font-medium text-brand-muted uppercase tracking-wider">Valor Estimado</th>
+                <th className="text-right px-4 py-3 font-inter text-xs font-medium text-brand-muted uppercase tracking-wider">Valor Real</th>
+                <th className="text-center px-4 py-3 font-inter text-xs font-medium text-brand-muted uppercase tracking-wider">Pago</th>
+                <th className="text-right px-4 py-3 font-inter text-xs font-medium text-brand-muted uppercase tracking-wider">Diferença</th>
+                <th className="text-right px-4 py-3 font-inter text-xs font-medium text-brand-muted uppercase tracking-wider">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-brand-border">
+              {items.map((item) => {
+                const estimated = Number(item.amount) || 0
+                const actual = Number(item.amount_brl) || 0
+                const diff = actual - estimated
+                const isPaid = item.status === 'paid'
+                return (
+                  <tr key={String(item.id)} className="hover:bg-brand-bg transition-colors">
+                    <td className="px-4 py-3">
+                      <p className="font-outfit text-sm text-brand-title">{String(item.description || '—')}</p>
+                      <p className="font-inter text-xs text-brand-muted">{tl(String(item.category || 'other'))}</p>
+                    </td>
+                    <td className="px-4 py-3 text-right font-inter text-sm text-brand-text">
+                      R$ {estimated.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-4 py-3 text-right font-inter text-sm text-brand-text">
+                      R$ {actual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`inline-block px-2 py-0.5 rounded-full font-inter text-xs font-medium ${isPaid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {isPaid ? 'Sim' : 'Não'}
+                      </span>
+                    </td>
+                    <td className={`px-4 py-3 text-right font-inter text-sm font-medium ${diff > 0 ? 'text-red-600' : diff < 0 ? 'text-green-600' : 'text-brand-muted'}`}>
+                      {diff !== 0 ? `${diff > 0 ? '+' : ''}R$ ${diff.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button onClick={() => openEdit(item)} className="p-1.5 text-brand-muted hover:text-brand-gold hover:bg-brand-bg-secondary rounded-lg transition-all" title="Editar">
+                          <Edit2 size={14} strokeWidth={1.5} />
+                        </button>
+                        <button onClick={() => setDeleteItemId(String(item.id))} className="p-1.5 text-brand-muted hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Excluir">
+                          <Trash2 size={14} strokeWidth={1.5} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+            <tfoot>
+              <tr className="border-t-2 border-brand-border bg-brand-bg">
+                <td className="px-4 py-3 font-inter text-sm font-semibold text-brand-title">TOTAL</td>
+                <td className="px-4 py-3 text-right font-inter text-sm font-semibold text-brand-title">
+                  R$ {items.reduce((s, i) => s + (Number(i.amount) || 0), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </td>
+                <td className="px-4 py-3 text-right font-inter text-sm font-semibold text-brand-title">
+                  R$ {items.reduce((s, i) => s + (Number(i.amount_brl) || 0), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </td>
+                <td className="px-4 py-3" />
+                <td className="px-4 py-3 text-right font-inter text-sm font-semibold text-brand-title">
+                  {(() => {
+                    const totalDiff = items.reduce((s, i) => s + ((Number(i.amount_brl) || 0) - (Number(i.amount) || 0)), 0)
+                    return totalDiff !== 0
+                      ? <span className={totalDiff > 0 ? 'text-red-600' : 'text-green-600'}>
+                          {totalDiff > 0 ? '+' : ''}R$ {totalDiff.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                      : '—'
+                  })()}
+                </td>
+                <td className="px-4 py-3" />
+              </tr>
+            </tfoot>
+          </table>
         </Card>
       ) : (
         <div className="space-y-3">
@@ -488,7 +683,7 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
                       className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all"
                     >
                       <option value="">Selecione...</option>
-                      {field.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                      {field.options.map(opt => <option key={opt} value={opt}>{OPTION_LABELS[opt] || opt}</option>)}
                     </select>
                   </div>
                 )
@@ -504,6 +699,20 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
                       className="w-4 h-4 accent-brand-gold"
                     />
                     <label htmlFor={field.name} className="font-inter text-sm text-brand-text">{field.label}</label>
+                  </div>
+                )
+              }
+              if (field.type === 'textarea') {
+                return (
+                  <div key={field.name} className="flex flex-col gap-1.5 sm:col-span-2">
+                    <label className="font-inter text-sm font-medium text-brand-text">{field.label}{field.required && ' *'}</label>
+                    <textarea
+                      value={formData[field.name] || ''}
+                      onChange={(e) => setFormData(p => ({ ...p, [field.name]: e.target.value }))}
+                      rows={6}
+                      placeholder={field.label}
+                      className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all resize-y"
+                    />
                   </div>
                 )
               }

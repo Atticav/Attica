@@ -29,7 +29,10 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { getDestinationInfo } from '@/lib/destination-data'
+import { getDestinationData } from '@/lib/utils'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import WeatherWidget from '@/components/widgets/WeatherWidget'
+import CurrencyWidget from '@/components/widgets/CurrencyWidget'
 import type { Trip } from '@/lib/types'
 
 type SectionSlug = 'itinerary' | 'financial' | 'documents' | 'packing' | 'checklist' | 'strategic' | 'guide' | 'gallery' | 'restaurants' | 'photography' | 'culture' | 'vocabulary' | 'contract'
@@ -61,6 +64,7 @@ export default function DashboardPage() {
   const [firstName, setFirstName] = useState('')
   const [trips, setTrips] = useState<Trip[]>([])
   const [loading, setLoading] = useState(true)
+  const [financialSummary, setFinancialSummary] = useState<{ totalEstimated: number; totalActual: number } | null>(null)
 
   const loadData = useCallback(async () => {
     const supabase = createClient()
@@ -74,6 +78,22 @@ export default function DashboardPage() {
 
     setFirstName(profile?.full_name?.split(' ')[0] || '')
     setTrips(tripsData ?? [])
+
+    // Load financial summary for active trip
+    const activeTrip = tripsData?.[0]
+    if (activeTrip) {
+      const { data: financialItems } = await supabase
+        .from('financial_items')
+        .select('amount, amount_brl')
+        .eq('trip_id', activeTrip.id)
+
+      if (financialItems && financialItems.length > 0) {
+        const totalEstimated = financialItems.reduce((sum, item) => sum + (item.amount || 0), 0)
+        const totalActual = financialItems.reduce((sum, item) => sum + (item.amount_brl || 0), 0)
+        setFinancialSummary({ totalEstimated, totalActual })
+      }
+    }
+
     setLoading(false)
   }, [])
 
@@ -83,6 +103,9 @@ export default function DashboardPage() {
   const destinationInfo = activeTrip
     ? getDestinationInfo(activeTrip.destination, activeTrip.country)
     : null
+  const destinationData = activeTrip
+    ? getDestinationData(activeTrip.destination) || getDestinationData(activeTrip.country)
+    : undefined
   const daysUntilTrip = activeTrip?.start_date
     ? Math.ceil((new Date(activeTrip.start_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null
@@ -284,6 +307,64 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* Weather & Currency Widgets */}
+        {activeTrip && destinationData && (
+          <div className="mb-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {destinationData.latitude && destinationData.longitude && (
+                <WeatherWidget
+                  latitude={destinationData.latitude}
+                  longitude={destinationData.longitude}
+                  destinationName={activeTrip.destination}
+                />
+              )}
+              {destinationData.currency && (
+                <CurrencyWidget
+                  currencyCode={destinationData.currency}
+                  currencyName={destinationData.currency}
+                />
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Financial Summary Cards */}
+        {activeTrip && financialSummary && (financialSummary.totalEstimated > 0 || financialSummary.totalActual > 0) && (
+          <div className="mb-10">
+            <h2 className="font-cormorant text-2xl font-semibold text-brand-title mb-4">
+              Resumo Financeiro
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Card padding="md" className="bg-gradient-to-br from-brand-gold/5 to-amber-50 border-brand-gold/20">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-brand-gold/20 flex items-center justify-center flex-shrink-0">
+                    <DollarSign size={20} strokeWidth={1.5} className="text-brand-gold" />
+                  </div>
+                  <div>
+                    <p className="font-inter text-xs text-brand-muted">Total Estimado</p>
+                    <p className="font-cormorant text-2xl font-semibold text-brand-title">
+                      R$ {financialSummary.totalEstimated.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+              <Card padding="md" className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                    <DollarSign size={20} strokeWidth={1.5} className="text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-inter text-xs text-brand-muted">Total Real</p>
+                    <p className="font-cormorant text-2xl font-semibold text-brand-title">
+                      R$ {financialSummary.totalActual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+        )}
+
         {/* Grade de seções */}
         <div>
           <h2 className="font-cormorant text-2xl font-semibold text-brand-title mb-4">
@@ -317,6 +398,33 @@ export default function DashboardPage() {
               return <div key={slug}>{cardContent}</div>
             })}
           </div>
+        </div>
+
+        {/* Feedback Widget */}
+        <div className="mt-10">
+          <a
+            href="https://tally.so/r/rj6PMR"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block"
+          >
+            <Card padding="md" className="bg-gradient-to-r from-brand-gold/10 to-amber-50 border-brand-gold/30 hover:shadow-card hover:border-brand-gold/50 transition-all cursor-pointer">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-brand-gold/20 flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl">⭐</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-cormorant text-lg font-semibold text-brand-title">
+                    Avalie sua experiência
+                  </h3>
+                  <p className="font-outfit text-sm text-brand-muted">
+                    Sua opinião é muito importante para nós. Conte como está sendo sua experiência com a Attica!
+                  </p>
+                </div>
+                <ChevronDown size={20} strokeWidth={1.5} className="text-brand-gold -rotate-90 flex-shrink-0" />
+              </div>
+            </Card>
+          </a>
         </div>
       </div>
     </>
