@@ -6,7 +6,7 @@ import Card from '@/components/ui/Card'
 import Modal from '@/components/ui/Modal'
 import Input from '@/components/ui/Input'
 import { ToastContainer } from '@/components/ui/Toast'
-import { ArrowLeft, Plus, Edit2, Trash2, Sparkles } from 'lucide-react'
+import { ArrowLeft, Plus, Edit2, Trash2, Sparkles, Copy } from 'lucide-react'
 import Link from 'next/link'
 
 const OPTION_LABELS: Record<string, string> = {
@@ -292,6 +292,27 @@ function getFormFields(section: string): { name: string; label: string; type?: s
   }
 }
 
+const TEMPLATE_SECTIONS = ['packing', 'checklist', 'strategic', 'guide', 'photography', 'vocabulary']
+
+function getTableName(section: string): string {
+  const tableMap: Record<string, string> = {
+    itinerary: 'itinerary_items',
+    financial: 'financial_items',
+    documents: 'documents',
+    packing: 'packing_items',
+    checklist: 'checklist_items',
+    strategic: 'strategic_sections',
+    guide: 'tutorials',
+    gallery: 'gallery_items',
+    restaurants: 'restaurants',
+    photography: 'photography_tips',
+    culture: 'cultural_info',
+    vocabulary: 'vocabulary',
+    contract: 'contracts',
+  }
+  return tableMap[section] || section
+}
+
 export default function SectionPage({ params }: { params: Promise<{ tripId: string; section: string }> }) {
   const { tripId, section } = use(params)
   const [items, setItems] = useState<Record<string, unknown>[]>([])
@@ -374,6 +395,35 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
   }
 
   const formFields = getFormFields(section)
+
+  async function applyTemplate() {
+    const templateTable = `template_${section}`
+    const supabase = (await import('@/lib/supabase/client')).createClient()
+
+    const { data: templateItems, error: fetchError } = await supabase
+      .from(templateTable)
+      .select('*')
+      .order('order_index', { ascending: true })
+
+    if (fetchError || !templateItems || templateItems.length === 0) {
+      addToast('Nenhum template encontrado para esta seção', 'info')
+      return
+    }
+
+    const sectionTable = getTableName(section)
+    const itemsToInsert = templateItems.map(({ id: _id, created_at: _ca, updated_at: _ua, ...rest }) => {
+      return { ...rest, trip_id: tripId }
+    })
+
+    const { error: insertError } = await supabase.from(sectionTable).insert(itemsToInsert)
+
+    if (insertError) {
+      addToast('Erro ao aplicar template', 'error')
+    } else {
+      addToast(`✅ ${itemsToInsert.length} itens do template aplicados!`, 'success')
+      loadItems()
+    }
+  }
 
   function openCreate() {
     setEditItem(null)
@@ -470,6 +520,15 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
               >
                 <Sparkles size={16} strokeWidth={1.5} />
                 Gerar com IA
+              </button>
+            )}
+            {TEMPLATE_SECTIONS.includes(section) && (
+              <button
+                onClick={applyTemplate}
+                className="flex items-center gap-2 px-4 py-2.5 border border-brand-gold text-brand-gold rounded-lg font-inter text-sm font-medium hover:bg-brand-gold hover:text-white transition-colors"
+              >
+                <Copy size={16} strokeWidth={1.5} />
+                Aplicar Template
               </button>
             )}
             <button
