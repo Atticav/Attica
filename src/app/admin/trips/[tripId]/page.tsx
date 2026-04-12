@@ -116,19 +116,6 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
 
   useEffect(() => { loadTrip() }, [loadTrip])
 
-  useEffect(() => {
-    if (form.start_date && form.end_date) {
-      const start = new Date(form.start_date)
-      const end = new Date(form.end_date)
-      const days = Math.ceil((end.getTime() - start.getTime()) / 86400000) + 1
-      setWidgetForm(p => ({ ...p, ideal_duration: `${days} ${days === 1 ? 'dia' : 'dias'}` }))
-    } else if (form.start_date) {
-      setWidgetForm(p => ({ ...p, ideal_duration: '1 dia' }))
-    } else {
-      setWidgetForm(p => ({ ...p, ideal_duration: '' }))
-    }
-  }, [form.start_date, form.end_date])
-
   async function handleSaveWidgets() {
     setSavingWidgets(true)
     try {
@@ -333,12 +320,12 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
               <option value="Equilíbrio">Equilíbrio</option>
             </select>
           </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="font-inter text-sm font-medium text-brand-text">Duração ideal</label>
-            <div className="w-full rounded-lg border border-brand-border font-outfit text-sm bg-brand-bg-secondary px-4 py-3 min-h-[48px] text-brand-text">
-              {widgetForm.ideal_duration ? widgetForm.ideal_duration : <span className="text-brand-muted">Preencha as datas da viagem</span>}
-            </div>
-          </div>
+          <Input
+            label="Duração ideal"
+            value={widgetForm.ideal_duration}
+            onChange={(e) => setWidgetForm(p => ({ ...p, ideal_duration: e.target.value }))}
+            placeholder="Ex: 7 dias, 10 a 14 dias"
+          />
           <div className="flex flex-col gap-1.5 md:col-span-2">
             <label className="font-inter text-sm font-medium text-brand-text">Notas personalizadas</label>
             <textarea
