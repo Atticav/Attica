@@ -10,6 +10,10 @@ import { ArrowLeft, Plus, Edit2, Trash2, Sparkles, Copy, Paperclip } from 'lucid
 import Link from 'next/link'
 import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 
+const MAX_VIDEO_SIZE_MB = 50
+const MAX_PDF_SIZE_MB = 20
+const MAX_IMAGE_SIZE_MB = 10
+
 const OPTION_LABELS: Record<string, string> = {
   // Itinerary categories
   flight: 'Voo',
@@ -226,12 +230,12 @@ function getFormFields(section: string): { name: string; label: string; type?: s
         { name: 'description', label: 'Descrição' },
         { name: 'order_index', label: 'Ordem', type: 'number' },
         { name: 'url_upload', label: 'Upload de vídeo (MP4, MOV, WebM)', type: 'file', bucket: 'guide-videos', accept: 'video/mp4,video/quicktime,video/webm', uploadTarget: 'url', virtual: true },
-        { name: 'url', label: 'URL (YouTube / PDF / Link)', required: true },
+        { name: 'url', label: 'URL (YouTube / PDF / Link) — ou use o upload acima' },
       ]
     case 'gallery':
       return [
         { name: 'file_url_upload', label: 'Upload de arquivo (foto ou vídeo)', type: 'file', bucket: 'gallery', accept: 'image/jpeg,image/png,image/webp,video/mp4,video/quicktime', uploadTarget: 'file_url', virtual: true },
-        { name: 'file_url', label: 'URL do arquivo (alternativa)', required: true },
+        { name: 'file_url', label: 'URL do arquivo (alternativa ao upload)' },
         { name: 'type', label: 'Tipo', options: ['photo', 'video'], required: true },
         { name: 'title', label: 'Título' },
         { name: 'description', label: 'Descrição' },
@@ -481,6 +485,15 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
         addToast(`${f.label} é obrigatório`, 'error')
         return
       }
+    }
+    // Section-specific validation for fields that can be satisfied by either upload or URL
+    if (section === 'guide' && !formData['url']) {
+      addToast('Informe uma URL ou faça upload de um arquivo', 'error')
+      return
+    }
+    if (section === 'gallery' && !formData['file_url']) {
+      addToast('Informe uma URL ou faça upload de um arquivo', 'error')
+      return
     }
     setSaving(true)
     try {
@@ -752,7 +765,7 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
                         onChange={(e) => {
                           const file = e.target.files?.[0]
                           if (file && field.bucket) {
-                            const maxMB = field.accept?.includes('video') ? 50 : field.accept?.includes('pdf') ? 20 : 10
+                            const maxMB = field.accept?.includes('video') ? MAX_VIDEO_SIZE_MB : field.accept?.includes('pdf') ? MAX_PDF_SIZE_MB : MAX_IMAGE_SIZE_MB
                             handleFileUpload(field.name, field.bucket, file, field.uploadTarget, maxMB)
                           }
                         }}
