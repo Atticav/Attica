@@ -89,6 +89,16 @@ export default function StrategicPage() {
             </div>
           )}
 
+          {section.image_url && (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={section.image_url}
+              alt={section.title}
+              className="w-full h-auto rounded-lg border border-brand-border"
+              loading="lazy"
+            />
+          )}
+
           {sectionLinks.length > 0 && (
             <div className="space-y-2">
               <p className="font-inter text-xs font-medium text-brand-muted uppercase tracking-wider">

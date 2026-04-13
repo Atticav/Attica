@@ -101,6 +101,15 @@ export default function CulturePage() {
                 <p className="font-outfit text-sm text-brand-text leading-relaxed whitespace-pre-line">
                   {item.content}
                 </p>
+                {item.image_url && (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={item.image_url}
+                    alt={item.title}
+                    className="w-full h-auto rounded-lg border border-brand-border mt-3"
+                    loading="lazy"
+                  />
+                )}
               </div>
             </div>
           </div>

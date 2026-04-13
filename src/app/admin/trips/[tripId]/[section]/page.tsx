@@ -6,8 +6,20 @@ import Card from '@/components/ui/Card'
 import Modal from '@/components/ui/Modal'
 import Input from '@/components/ui/Input'
 import { ToastContainer } from '@/components/ui/Toast'
-import { ArrowLeft, Plus, Edit2, Trash2, Sparkles, Copy } from 'lucide-react'
+import { ArrowLeft, Plus, Edit2, Trash2, Sparkles, Copy, Paperclip } from 'lucide-react'
 import Link from 'next/link'
+import { createClient as createSupabaseClient } from '@/lib/supabase/client'
+
+const MAX_VIDEO_SIZE_MB = 50
+const MAX_PDF_SIZE_MB = 20
+const MAX_IMAGE_SIZE_MB = 10
+
+function getMaxFileSizeMB(accept: string | undefined): number {
+  if (!accept) return MAX_IMAGE_SIZE_MB
+  if (accept.includes('video')) return MAX_VIDEO_SIZE_MB
+  if (accept.includes('pdf')) return MAX_PDF_SIZE_MB
+  return MAX_IMAGE_SIZE_MB
+}
 
 const OPTION_LABELS: Record<string, string> = {
   // Itinerary categories
@@ -158,7 +170,7 @@ function getDisplayFields(section: string, item: Record<string, unknown>): { lab
   return fields
 }
 
-function getFormFields(section: string): { name: string; label: string; type?: string; required?: boolean; options?: string[] }[] {
+function getFormFields(section: string): { name: string; label: string; type?: string; required?: boolean; options?: string[]; bucket?: string; accept?: string; uploadTarget?: string; virtual?: boolean }[] {
   switch (section) {
     case 'itinerary':
       return [
@@ -179,10 +191,7 @@ function getFormFields(section: string): { name: string; label: string; type?: s
         { name: 'type', label: 'Tipo', options: ['income', 'expense'], required: true },
         { name: 'category', label: 'Categoria', options: ['flight', 'hotel', 'transfer', 'tour', 'food', 'shopping', 'insurance', 'visa', 'other'] },
         { name: 'amount', label: 'Valor', type: 'number', required: true },
-        { name: 'currency', label: 'Moeda' },
-        { name: 'amount_brl', label: 'Valor em BRL', type: 'number' },
         { name: 'status', label: 'Status', options: ['pending', 'paid', 'refunded'] },
-        { name: 'due_date', label: 'Data de vencimento', type: 'date' },
         { name: 'notes', label: 'Notas' },
       ]
     case 'documents':
@@ -190,7 +199,8 @@ function getFormFields(section: string): { name: string; label: string; type?: s
         { name: 'title', label: 'Título', required: true },
         { name: 'type', label: 'Tipo', options: ['passport', 'visa', 'ticket', 'voucher', 'insurance', 'other'] },
         { name: 'description', label: 'Descrição' },
-        { name: 'file_url', label: 'URL do arquivo' },
+        { name: 'file_url_upload', label: 'Upload de arquivo (PDF, imagem)', type: 'file', bucket: 'documents', accept: '.pdf,image/jpeg,image/png,image/webp', uploadTarget: 'file_url', virtual: true },
+        { name: 'file_url', label: 'URL do arquivo (opcional, para links externos)' },
         { name: 'expiry_date', label: 'Data de validade', type: 'date' },
         { name: 'notes', label: 'Notas' },
         { name: 'order_index', label: 'Ordem', type: 'number' },
@@ -216,21 +226,23 @@ function getFormFields(section: string): { name: string; label: string; type?: s
       return [
         { name: 'title', label: 'Título', required: true },
         { name: 'content', label: 'Conteúdo' },
+        { name: 'image_url_upload', label: 'Imagem ilustrativa (JPG, PNG, WebP)', type: 'file', bucket: 'strategic-images', accept: 'image/jpeg,image/png,image/webp', uploadTarget: 'image_url', virtual: true },
+        { name: 'image_url', label: 'URL da imagem (opcional)' },
         { name: 'order_index', label: 'Ordem', type: 'number' },
       ]
     case 'guide':
       return [
         { name: 'title', label: 'Título', required: true },
         { name: 'type', label: 'Tipo', options: ['video', 'youtube', 'pdf', 'link'], required: true },
-        { name: 'url', label: 'URL', required: true },
         { name: 'description', label: 'Descrição' },
-        { name: 'thumbnail_url', label: 'URL da miniatura' },
-        { name: 'duration_minutes', label: 'Duração (min)', type: 'number' },
         { name: 'order_index', label: 'Ordem', type: 'number' },
+        { name: 'url_upload', label: 'Upload de vídeo (MP4, MOV, WebM)', type: 'file', bucket: 'guide-videos', accept: 'video/mp4,video/quicktime,video/webm', uploadTarget: 'url', virtual: true },
+        { name: 'url', label: 'URL (YouTube / PDF / Link)' },
       ]
     case 'gallery':
       return [
-        { name: 'file_url', label: 'URL do arquivo', required: true },
+        { name: 'file_url_upload', label: 'Upload de arquivo (foto ou vídeo)', type: 'file', bucket: 'gallery', accept: 'image/jpeg,image/png,image/webp,video/mp4,video/quicktime', uploadTarget: 'file_url', virtual: true },
+        { name: 'file_url', label: 'URL do arquivo (alternativa ao upload)' },
         { name: 'type', label: 'Tipo', options: ['photo', 'video'], required: true },
         { name: 'title', label: 'Título' },
         { name: 'description', label: 'Descrição' },
@@ -251,6 +263,8 @@ function getFormFields(section: string): { name: string; label: string; type?: s
         { name: 'price_range', label: 'Faixa de preço (1-4)', type: 'number' },
         { name: 'rating', label: 'Avaliação', type: 'number' },
         { name: 'is_recommended', label: 'Recomendado', type: 'checkbox' },
+        { name: 'photo_url_upload', label: 'Foto do restaurante (JPG, PNG, WebP)', type: 'file', bucket: 'restaurants-photos', accept: 'image/jpeg,image/png,image/webp', uploadTarget: 'photo_url', virtual: true },
+        { name: 'photo_url', label: 'URL da foto (opcional)' },
         { name: 'order_index', label: 'Ordem', type: 'number' },
       ]
     case 'photography':
@@ -260,7 +274,10 @@ function getFormFields(section: string): { name: string; label: string; type?: s
         { name: 'description', label: 'Descrição' },
         { name: 'location', label: 'Local' },
         { name: 'best_time', label: 'Melhor horário' },
-        { name: 'image_url', label: 'URL da imagem' },
+        { name: 'image_url_upload', label: 'Foto (JPG, PNG, WebP)', type: 'file', bucket: 'photography-images', accept: 'image/jpeg,image/png,image/webp', uploadTarget: 'image_url', virtual: true },
+        { name: 'image_url', label: 'URL da imagem (opcional)' },
+        { name: 'video_url_upload', label: 'Upload de vídeo (MP4)', type: 'file', bucket: 'photography-videos', accept: 'video/mp4', uploadTarget: 'video_url', virtual: true },
+        { name: 'video_url', label: 'URL do YouTube (opcional)' },
         { name: 'order_index', label: 'Ordem', type: 'number' },
       ]
     case 'culture':
@@ -269,6 +286,8 @@ function getFormFields(section: string): { name: string; label: string; type?: s
         { name: 'category', label: 'Categoria', options: ['Costumes', 'Gastronomia', 'Religião', 'Etiqueta', 'História', 'Transporte', 'Segurança', 'Clima', 'Moeda', 'Outros'], required: true },
         { name: 'content', label: 'Conteúdo', type: 'textarea', required: true },
         { name: 'is_important', label: 'Importante', type: 'checkbox' },
+        { name: 'image_url_upload', label: 'Imagem ilustrativa (JPG, PNG, WebP)', type: 'file', bucket: 'culture-images', accept: 'image/jpeg,image/png,image/webp', uploadTarget: 'image_url', virtual: true },
+        { name: 'image_url', label: 'URL da imagem (opcional)' },
         { name: 'order_index', label: 'Ordem', type: 'number' },
       ]
     case 'vocabulary':
@@ -323,6 +342,7 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
   const [saving, setSaving] = useState(false)
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null)
   const [toasts, setToasts] = useState<{ id: string; message: string; type: 'success' | 'error' | 'info' }[]>([])
+  const [uploadingFields, setUploadingFields] = useState<Record<string, boolean>>({})
   const [aiModalOpen, setAiModalOpen] = useState(false)
   const [aiGenerating, setAiGenerating] = useState(false)
   const [aiTravelStyle, setAiTravelStyle] = useState('')
@@ -331,6 +351,30 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
   const addToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
     const id = Math.random().toString(36).slice(2)
     setToasts(prev => [...prev, { id, message, type }])
+  }
+
+  async function handleFileUpload(fieldName: string, bucket: string, file: File, targetField?: string, maxSizeMB = 50) {
+    const storeField = targetField || fieldName
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      addToast(`Arquivo muito grande. Máximo: ${maxSizeMB}MB`, 'error')
+      return
+    }
+    setUploadingFields(p => ({ ...p, [fieldName]: true }))
+    try {
+      const supabase = createSupabaseClient()
+      const path = `${tripId}/${Date.now()}-${file.name}`
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(path, file, { upsert: true })
+      if (error) throw error
+      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(data.path)
+      setFormData(p => ({ ...p, [storeField]: urlData.publicUrl }))
+      addToast('Arquivo enviado!', 'success')
+    } catch (err: unknown) {
+      addToast(err instanceof Error ? err.message : 'Erro ao enviar arquivo', 'error')
+    } finally {
+      setUploadingFields(p => ({ ...p, [fieldName]: false }))
+    }
   }
 
   const loadItems = useCallback(async () => {
@@ -449,10 +493,20 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
         return
       }
     }
+    // Section-specific validation for fields that can be satisfied by either upload or URL
+    if (section === 'guide' && !formData['url']) {
+      addToast('Informe uma URL ou faça upload de um arquivo', 'error')
+      return
+    }
+    if (section === 'gallery' && !formData['file_url']) {
+      addToast('Informe uma URL ou faça upload de um arquivo', 'error')
+      return
+    }
     setSaving(true)
     try {
       const payload: Record<string, unknown> = {}
       formFields.forEach(f => {
+        if (f.virtual) return // skip virtual upload fields
         const val = formData[f.name]
         if (val === '' || val === undefined) { payload[f.name] = null; return }
         if (f.type === 'number') payload[f.name] = Number(val)
@@ -702,6 +756,37 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
                   </div>
                 )
               }
+              if (field.type === 'file') {
+                const targetField = field.uploadTarget || field.name
+                const isUploading = uploadingFields[field.name] || false
+                const uploadedUrl = formData[targetField]
+                return (
+                  <div key={field.name} className="flex flex-col gap-1.5 sm:col-span-2">
+                    <label className="font-inter text-sm font-medium text-brand-text">{field.label}</label>
+                    <label className={`flex items-center gap-3 px-4 py-3 rounded-lg border border-dashed border-brand-border bg-brand-bg cursor-pointer hover:border-brand-gold/50 transition-colors ${isUploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                      <input
+                        type="file"
+                        accept={field.accept}
+                        className="hidden"
+                        disabled={isUploading}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file && field.bucket) {
+                            handleFileUpload(field.name, field.bucket, file, field.uploadTarget, getMaxFileSizeMB(field.accept))
+                          }
+                        }}
+                      />
+                      <Paperclip size={16} strokeWidth={1.5} className="text-brand-muted flex-shrink-0" />
+                      <span className="font-outfit text-sm text-brand-muted">
+                        {isUploading ? 'Enviando...' : uploadedUrl ? 'Arquivo enviado — clique para trocar' : 'Escolher arquivo'}
+                      </span>
+                    </label>
+                    {uploadedUrl && !isUploading && (
+                      <p className="font-outfit text-xs text-brand-muted truncate pl-1">{uploadedUrl}</p>
+                    )}
+                  </div>
+                )
+              }
               if (field.type === 'textarea') {
                 return (
                   <div key={field.name} className="flex flex-col gap-1.5 sm:col-span-2">
@@ -730,7 +815,7 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
           </div>
           <div className="flex gap-3 pt-2">
             <button onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-brand-border text-brand-text rounded-lg font-inter text-sm hover:bg-brand-bg transition-colors">Cancelar</button>
-            <button onClick={handleSave} disabled={saving} className="flex-1 px-4 py-2.5 bg-brand-gold text-white rounded-lg font-inter text-sm font-medium hover:bg-brand-gold-dark transition-colors disabled:opacity-60">{saving ? 'Salvando...' : 'Salvar'}</button>
+            <button onClick={handleSave} disabled={saving || Object.values(uploadingFields).some(Boolean)} className="flex-1 px-4 py-2.5 bg-brand-gold text-white rounded-lg font-inter text-sm font-medium hover:bg-brand-gold-dark transition-colors disabled:opacity-60">{saving ? 'Salvando...' : 'Salvar'}</button>
           </div>
         </div>
       </Modal>
