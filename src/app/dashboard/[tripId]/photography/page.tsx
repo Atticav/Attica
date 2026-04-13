@@ -97,6 +97,28 @@ export default function PhotographyPage() {
             loading="lazy"
           />
         )}
+
+        {tip.video_url && (
+          <div className="mt-2">
+            {tip.video_url.includes('youtube.com') || tip.video_url.includes('youtu.be') ? (
+              <a
+                href={tip.video_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 font-inter text-xs font-medium text-brand-gold hover:text-brand-gold-dark transition-colors"
+              >
+                <Camera size={13} strokeWidth={1.5} />
+                Ver vídeo
+              </a>
+            ) : (
+              <video
+                src={tip.video_url}
+                controls
+                className="w-full h-auto rounded-brand border border-brand-border"
+              />
+            )}
+          </div>
+        )}
       </div>
     ),
   }))

@@ -181,6 +181,7 @@ export interface StrategicSection {
   trip_id: string
   title: string
   content: string | null
+  image_url: string | null
   order_index: number
   created_at: string
   updated_at: string
@@ -260,6 +261,7 @@ export interface Restaurant {
   rating: number | null
   attica_notes: string | null
   is_recommended: boolean
+  photo_url: string | null
   order_index: number
   created_at: string
   updated_at: string
@@ -276,6 +278,7 @@ export interface PhotographyTip {
   best_time: string | null
   tip_text: string
   image_url: string | null
+  video_url: string | null
   order_index: number
   created_at: string
   updated_at: string
@@ -290,6 +293,7 @@ export interface CulturalInfo {
   title: string
   content: string
   is_important: boolean
+  image_url: string | null
   order_index: number
   created_at: string
   updated_at: string

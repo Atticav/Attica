@@ -122,6 +122,15 @@ export default function RestaurantsPage() {
           return (
             <Card key={restaurant.id} padding="md">
               <div className="space-y-3">
+                {restaurant.photo_url && (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={restaurant.photo_url}
+                    alt={restaurant.name}
+                    className="w-full h-40 object-cover rounded-lg border border-brand-border"
+                    loading="lazy"
+                  />
+                )}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <div className="flex-shrink-0 p-2 bg-brand-bg-secondary rounded-lg">
