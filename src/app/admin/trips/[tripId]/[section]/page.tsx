@@ -14,6 +14,13 @@ const MAX_VIDEO_SIZE_MB = 50
 const MAX_PDF_SIZE_MB = 20
 const MAX_IMAGE_SIZE_MB = 10
 
+function getMaxFileSizeMB(accept: string | undefined): number {
+  if (!accept) return MAX_IMAGE_SIZE_MB
+  if (accept.includes('video')) return MAX_VIDEO_SIZE_MB
+  if (accept.includes('pdf')) return MAX_PDF_SIZE_MB
+  return MAX_IMAGE_SIZE_MB
+}
+
 const OPTION_LABELS: Record<string, string> = {
   // Itinerary categories
   flight: 'Voo',
@@ -230,7 +237,7 @@ function getFormFields(section: string): { name: string; label: string; type?: s
         { name: 'description', label: 'Descrição' },
         { name: 'order_index', label: 'Ordem', type: 'number' },
         { name: 'url_upload', label: 'Upload de vídeo (MP4, MOV, WebM)', type: 'file', bucket: 'guide-videos', accept: 'video/mp4,video/quicktime,video/webm', uploadTarget: 'url', virtual: true },
-        { name: 'url', label: 'URL (YouTube / PDF / Link) — ou use o upload acima' },
+        { name: 'url', label: 'URL (YouTube / PDF / Link)' },
       ]
     case 'gallery':
       return [
@@ -765,8 +772,7 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
                         onChange={(e) => {
                           const file = e.target.files?.[0]
                           if (file && field.bucket) {
-                            const maxMB = field.accept?.includes('video') ? MAX_VIDEO_SIZE_MB : field.accept?.includes('pdf') ? MAX_PDF_SIZE_MB : MAX_IMAGE_SIZE_MB
-                            handleFileUpload(field.name, field.bucket, file, field.uploadTarget, maxMB)
+                            handleFileUpload(field.name, field.bucket, file, field.uploadTarget, getMaxFileSizeMB(field.accept))
                           }
                         }}
                       />
@@ -809,7 +815,7 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
           </div>
           <div className="flex gap-3 pt-2">
             <button onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-brand-border text-brand-text rounded-lg font-inter text-sm hover:bg-brand-bg transition-colors">Cancelar</button>
-            <button onClick={handleSave} disabled={saving} className="flex-1 px-4 py-2.5 bg-brand-gold text-white rounded-lg font-inter text-sm font-medium hover:bg-brand-gold-dark transition-colors disabled:opacity-60">{saving ? 'Salvando...' : 'Salvar'}</button>
+            <button onClick={handleSave} disabled={saving || Object.values(uploadingFields).some(Boolean)} className="flex-1 px-4 py-2.5 bg-brand-gold text-white rounded-lg font-inter text-sm font-medium hover:bg-brand-gold-dark transition-colors disabled:opacity-60">{saving ? 'Salvando...' : 'Salvar'}</button>
           </div>
         </div>
       </Modal>
