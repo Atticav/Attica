@@ -52,7 +52,7 @@ const SECTIONS: SectionConfig[] = [
     table: 'template_checklist',
     fields: [
       { name: 'title', label: 'Tarefa', required: true },
-      { name: 'section', label: 'Seção', required: true },
+      { name: 'section', label: 'Seção', required: true, options: ['Documentos', 'Saúde', 'Bagagem', 'Transporte', 'Hospedagem', 'Financeiro', 'Tecnologia', 'Outros'] },
       { name: 'description', label: 'Descrição' },
       { name: 'order_index', label: 'Ordem', type: 'number' },
     ],
@@ -131,10 +131,14 @@ export default function TemplatesPage() {
       const supabase = createClient()
       const counts: Record<string, number> = {}
       for (const section of SECTIONS) {
-        const { count } = await supabase
-          .from(section.table)
-          .select('*', { count: 'exact', head: true })
-        counts[section.key] = count ?? 0
+        try {
+          const { count } = await supabase
+            .from(section.table)
+            .select('*', { count: 'exact', head: true })
+          counts[section.key] = count ?? 0
+        } catch {
+          counts[section.key] = 0
+        }
       }
       setItemCounts(counts)
     }
@@ -151,11 +155,15 @@ export default function TemplatesPage() {
         .select('*')
         .order('order_index', { ascending: true })
 
-      if (error) throw error
-      setItems(data ?? [])
-    } catch {
+      if (error) {
+        console.error('Template load error:', error)
+        setItems([])
+      } else {
+        setItems(data ?? [])
+      }
+    } catch (e) {
+      console.error('Template load exception:', e)
       setItems([])
-      addToast('Erro ao carregar itens do template', 'error')
     } finally {
       setLoading(false)
     }
