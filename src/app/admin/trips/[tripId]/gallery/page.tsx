@@ -23,6 +23,8 @@ const DEFAULT_ALBUMS = [
   'Documentos Visuais',
 ]
 
+const MAX_FILE_SIZE_MB = 100
+
 export default function AdminGalleryPage({ params }: { params: Promise<{ tripId: string }> }) {
   const { tripId } = use(params)
   const [albums, setAlbums] = useState<GalleryAlbum[]>([])
@@ -226,8 +228,8 @@ export default function AdminGalleryPage({ params }: { params: Promise<{ tripId:
   }
 
   async function handleFileUpload(file: File) {
-    if (file.size > 100 * 1024 * 1024) {
-      addToast('Arquivo muito grande. Máximo: 100MB', 'error')
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+      addToast(`Arquivo muito grande. Máximo: ${MAX_FILE_SIZE_MB}MB`, 'error')
       return
     }
     setUploadingFile(true)

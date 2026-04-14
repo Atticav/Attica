@@ -136,7 +136,8 @@ export default function TemplatesPage() {
             .from(section.table)
             .select('*', { count: 'exact', head: true })
           counts[section.key] = count ?? 0
-        } catch {
+        } catch (e) {
+          console.error(`Template count error for ${section.table}:`, e)
           counts[section.key] = 0
         }
       }
