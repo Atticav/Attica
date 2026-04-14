@@ -25,7 +25,6 @@ const OPTION_LABELS: Record<string, string> = {
 interface SectionConfig {
   key: string
   label: string
-  emoji: string
   icon: React.ReactNode
   table: string
   fields: { name: string; label: string; type?: string; required?: boolean; options?: string[] }[]
@@ -35,7 +34,6 @@ const SECTIONS: SectionConfig[] = [
   {
     key: 'packing',
     label: 'Mala Inteligente',
-    emoji: '🧳',
     icon: <Luggage size={28} strokeWidth={1.5} />,
     table: 'template_packing',
     fields: [
@@ -50,7 +48,6 @@ const SECTIONS: SectionConfig[] = [
   {
     key: 'checklist',
     label: 'Checklist',
-    emoji: '✅',
     icon: <CheckSquare size={28} strokeWidth={1.5} />,
     table: 'template_checklist',
     fields: [
@@ -63,7 +60,6 @@ const SECTIONS: SectionConfig[] = [
   {
     key: 'strategic',
     label: 'Central Estratégica',
-    emoji: '🔗',
     icon: <Link2 size={28} strokeWidth={1.5} />,
     table: 'template_strategic',
     fields: [
@@ -75,7 +71,6 @@ const SECTIONS: SectionConfig[] = [
   {
     key: 'guide',
     label: 'Guia Attica',
-    emoji: '🎬',
     icon: <Clapperboard size={28} strokeWidth={1.5} />,
     table: 'template_guide',
     fields: [
@@ -89,7 +84,6 @@ const SECTIONS: SectionConfig[] = [
   {
     key: 'photography',
     label: 'Fotografia',
-    emoji: '📸',
     icon: <Camera size={28} strokeWidth={1.5} />,
     table: 'template_photography',
     fields: [
@@ -102,7 +96,6 @@ const SECTIONS: SectionConfig[] = [
   {
     key: 'vocabulary',
     label: 'Vocabulário',
-    emoji: '📖',
     icon: <BookOpen size={28} strokeWidth={1.5} />,
     table: 'template_vocabulary',
     fields: [
@@ -159,8 +152,9 @@ export default function TemplatesPage() {
         .order('order_index', { ascending: true })
 
       if (error) throw error
-      setItems(data || [])
+      setItems(data ?? [])
     } catch {
+      setItems([])
       addToast('Erro ao carregar itens do template', 'error')
     } finally {
       setLoading(false)
@@ -307,7 +301,7 @@ export default function TemplatesPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-inter text-sm font-semibold text-brand-title group-hover:text-brand-gold transition-colors">
-                    {section.emoji} {section.label}
+                    {section.label}
                   </h3>
                   <p className="font-outfit text-xs text-brand-muted mt-0.5">
                     {itemCounts[section.key] ?? '...'} itens no template
@@ -323,7 +317,7 @@ export default function TemplatesPage() {
       <Modal
         isOpen={!!activeSection}
         onClose={() => { setActiveSection(null); setItems([]) }}
-        title={activeSection ? `${activeSection.emoji} Template: ${activeSection.label}` : ''}
+        title={activeSection ? `Template: ${activeSection.label}` : ''}
         size="xl"
       >
         {activeSection && (
