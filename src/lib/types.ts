@@ -221,9 +221,19 @@ export interface Tutorial {
 
 export type GalleryItemType = 'photo' | 'video'
 
+export interface GalleryAlbum {
+  id: string
+  trip_id: string
+  name: string
+  visible: boolean
+  order_index: number
+  created_at: string
+}
+
 export interface GalleryItem {
   id: string
   trip_id: string
+  album_id: string | null
   type: GalleryItemType
   title: string | null
   description: string | null

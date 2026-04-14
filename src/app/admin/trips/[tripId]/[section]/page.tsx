@@ -217,7 +217,7 @@ function getFormFields(section: string): { name: string; label: string; type?: s
     case 'checklist':
       return [
         { name: 'title', label: 'Tarefa', required: true },
-        { name: 'section', label: 'Seção', required: true },
+        { name: 'section', label: 'Seção', required: true, options: ['Documentos', 'Saúde', 'Bagagem', 'Transporte', 'Hospedagem', 'Financeiro', 'Tecnologia', 'Outros'] },
         { name: 'description', label: 'Descrição' },
         { name: 'deadline', label: 'Prazo', type: 'date' },
         { name: 'order_index', label: 'Ordem', type: 'number' },
