@@ -1,6 +1,11 @@
 -- =============================================
 -- MIGRATION 007: Template tables
 -- =============================================
+-- NOTE: Supabase migrations are NOT applied automatically.
+-- In a new environment, run this file manually via the Supabase Dashboard:
+--   Dashboard → SQL Editor → paste this file content → Run
+-- Or use the Supabase CLI: supabase db push
+-- =============================================
 
 -- template_packing
 CREATE TABLE IF NOT EXISTS public.template_packing (

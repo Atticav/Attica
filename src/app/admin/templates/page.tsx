@@ -27,7 +27,7 @@ interface SectionConfig {
   label: string
   icon: React.ReactNode
   table: string
-  fields: { name: string; label: string; type?: string; required?: boolean; options?: string[] }[]
+  fields: { name: string; label: string; type?: string; required?: boolean; options?: string[]; default?: unknown }[]
 }
 
 const SECTIONS: SectionConfig[] = [
@@ -39,10 +39,10 @@ const SECTIONS: SectionConfig[] = [
     fields: [
       { name: 'item_name', label: 'Item', required: true },
       { name: 'category', label: 'Categoria', options: ['clothing', 'documents', 'health', 'electronics', 'toiletries', 'accessories', 'other'] },
-      { name: 'quantity', label: 'Quantidade', type: 'number' },
+      { name: 'quantity', label: 'Quantidade', type: 'number', default: 1 },
       { name: 'is_essential', label: 'Essencial', type: 'checkbox' },
       { name: 'notes', label: 'Notas' },
-      { name: 'order_index', label: 'Ordem', type: 'number' },
+      { name: 'order_index', label: 'Ordem', type: 'number', default: 0 },
     ],
   },
   {
@@ -54,7 +54,7 @@ const SECTIONS: SectionConfig[] = [
       { name: 'title', label: 'Tarefa', required: true },
       { name: 'section', label: 'Seção', required: true, options: ['Documentos', 'Saúde', 'Bagagem', 'Transporte', 'Hospedagem', 'Financeiro', 'Tecnologia', 'Outros'] },
       { name: 'description', label: 'Descrição' },
-      { name: 'order_index', label: 'Ordem', type: 'number' },
+      { name: 'order_index', label: 'Ordem', type: 'number', default: 0 },
     ],
   },
   {
@@ -65,7 +65,7 @@ const SECTIONS: SectionConfig[] = [
     fields: [
       { name: 'title', label: 'Título', required: true },
       { name: 'content', label: 'Conteúdo' },
-      { name: 'order_index', label: 'Ordem', type: 'number' },
+      { name: 'order_index', label: 'Ordem', type: 'number', default: 0 },
     ],
   },
   {
@@ -78,7 +78,7 @@ const SECTIONS: SectionConfig[] = [
       { name: 'type', label: 'Tipo', options: ['video', 'youtube', 'pdf', 'link'], required: true },
       { name: 'url', label: 'URL' },
       { name: 'description', label: 'Descrição' },
-      { name: 'order_index', label: 'Ordem', type: 'number' },
+      { name: 'order_index', label: 'Ordem', type: 'number', default: 0 },
     ],
   },
   {
@@ -90,7 +90,7 @@ const SECTIONS: SectionConfig[] = [
       { name: 'title', label: 'Título', required: true },
       { name: 'tip_text', label: 'Dica', required: true },
       { name: 'description', label: 'Descrição' },
-      { name: 'order_index', label: 'Ordem', type: 'number' },
+      { name: 'order_index', label: 'Ordem', type: 'number', default: 0 },
     ],
   },
   {
@@ -103,7 +103,7 @@ const SECTIONS: SectionConfig[] = [
       { name: 'local_language', label: 'Idioma local', required: true },
       { name: 'pronunciation', label: 'Pronúncia' },
       { name: 'category', label: 'Categoria' },
-      { name: 'order_index', label: 'Ordem', type: 'number' },
+      { name: 'order_index', label: 'Ordem', type: 'number', default: 0 },
     ],
   },
 ]
@@ -210,7 +210,16 @@ export default function TemplatesPage() {
       const payload: Record<string, unknown> = {}
       activeSection.fields.forEach(f => {
         const val = formData[f.name]
-        if (val === '' || val === undefined) { payload[f.name] = null; return }
+        if (val === '' || val === undefined) {
+          if (f.type === 'number') {
+            payload[f.name] = f.default !== undefined ? f.default : 0
+          } else if (f.type === 'checkbox') {
+            payload[f.name] = false
+          } else {
+            payload[f.name] = null
+          }
+          return
+        }
         if (f.type === 'number') payload[f.name] = Number(val)
         else if (f.type === 'checkbox') payload[f.name] = val === 'true'
         else payload[f.name] = val
@@ -221,13 +230,19 @@ export default function TemplatesPage() {
           .from(activeSection.table)
           .update(payload)
           .eq('id', editItem.id)
-        if (error) throw error
+        if (error) {
+          console.error('Template update error:', error)
+          throw new Error(error.message || 'Erro ao atualizar item')
+        }
         addToast('Item atualizado!', 'success')
       } else {
         const { error } = await supabase
           .from(activeSection.table)
           .insert(payload)
-        if (error) throw error
+        if (error) {
+          console.error('Template insert error:', error)
+          throw new Error(error.message || 'Erro ao criar item')
+        }
         addToast('Item criado!', 'success')
       }
 
@@ -239,6 +254,7 @@ export default function TemplatesPage() {
         [activeSection.key]: editItem ? prev[activeSection.key] : (prev[activeSection.key] || 0) + 1,
       }))
     } catch (e: unknown) {
+      console.error('Template save error:', e)
       addToast(e instanceof Error ? e.message : 'Erro ao salvar', 'error')
     } finally {
       setSaving(false)
