@@ -5,7 +5,7 @@ import Card from '@/components/ui/Card'
 import Modal from '@/components/ui/Modal'
 import Input from '@/components/ui/Input'
 import { ToastContainer } from '@/components/ui/Toast'
-import { Plus, Edit2, Trash2, Luggage, CheckSquare, Link2, Clapperboard, Camera, BookOpen } from 'lucide-react'
+import { Plus, Edit2, Trash2, Luggage, CheckSquare, Link2, Clapperboard, Camera, BookOpen, Paperclip } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 const OPTION_LABELS: Record<string, string> = {
@@ -22,12 +22,27 @@ const OPTION_LABELS: Record<string, string> = {
   link: 'Link',
 }
 
+interface FieldConfig {
+  name: string
+  label: string
+  type?: string
+  required?: boolean
+  options?: string[]
+  default?: unknown
+  /** For type='file': accepted MIME types (e.g. 'video/*,application/pdf') */
+  accept?: string
+  /** For type='file': Supabase Storage bucket name */
+  bucket?: string
+  /** Only show this field when another field matches a value */
+  showWhen?: { field: string; values: string[] }
+}
+
 interface SectionConfig {
   key: string
   label: string
   icon: React.ReactNode
   table: string
-  fields: { name: string; label: string; type?: string; required?: boolean; options?: string[]; default?: unknown }[]
+  fields: FieldConfig[]
 }
 
 const SECTIONS: SectionConfig[] = [
@@ -77,6 +92,7 @@ const SECTIONS: SectionConfig[] = [
       { name: 'title', label: 'Título', required: true },
       { name: 'type', label: 'Tipo', options: ['video', 'youtube', 'pdf', 'link'], required: true },
       { name: 'url', label: 'URL' },
+      { name: 'video_file_url', label: 'Arquivo (vídeo/PDF)', type: 'file', accept: 'video/*,application/pdf', bucket: 'trip-files', showWhen: { field: 'type', values: ['video', 'pdf'] } },
       { name: 'description', label: 'Descrição' },
       { name: 'order_index', label: 'Ordem', type: 'number', default: 0 },
     ],
@@ -89,6 +105,7 @@ const SECTIONS: SectionConfig[] = [
     fields: [
       { name: 'title', label: 'Título', required: true },
       { name: 'tip_text', label: 'Dica', required: true },
+      { name: 'video_file_url', label: 'Arquivo (vídeo/imagem)', type: 'file', accept: 'video/*,image/*', bucket: 'trip-files' },
       { name: 'description', label: 'Descrição' },
       { name: 'order_index', label: 'Ordem', type: 'number', default: 0 },
     ],
@@ -119,6 +136,7 @@ export default function TemplatesPage() {
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null)
   const [toasts, setToasts] = useState<{ id: string; message: string; type: 'success' | 'error' | 'info' }[]>([])
   const [itemCounts, setItemCounts] = useState<Record<string, number>>({})
+  const [uploadingFields, setUploadingFields] = useState<Record<string, boolean>>({})
 
   const addToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
     const id = Math.random().toString(36).slice(2)
@@ -180,6 +198,7 @@ export default function TemplatesPage() {
     const initial: Record<string, string> = {}
     activeSection.fields.forEach(f => { initial[f.name] = '' })
     setFormData(initial)
+    setUploadingFields({})
     setModalOpen(true)
   }
 
@@ -191,7 +210,32 @@ export default function TemplatesPage() {
       initial[f.name] = item[f.name] !== null && item[f.name] !== undefined ? String(item[f.name]) : ''
     })
     setFormData(initial)
+    setUploadingFields({})
     setModalOpen(true)
+  }
+
+  async function handleFileUpload(fieldName: string, bucket: string, file: File, maxSizeMB = 100) {
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      addToast(`Arquivo muito grande. Máximo: ${maxSizeMB}MB`, 'error')
+      return
+    }
+    setUploadingFields(p => ({ ...p, [fieldName]: true }))
+    try {
+      const supabase = createClient()
+      const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+      const path = `templates/${Date.now()}-${safeFileName}`
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(path, file, { upsert: true })
+      if (error) throw error
+      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(data.path)
+      setFormData(p => ({ ...p, [fieldName]: urlData.publicUrl }))
+      addToast('Arquivo enviado!', 'success')
+    } catch (err: unknown) {
+      addToast(err instanceof Error ? err.message : 'Erro ao enviar arquivo', 'error')
+    } finally {
+      setUploadingFields(p => ({ ...p, [fieldName]: false }))
+    }
   }
 
   async function handleSave() {
@@ -283,10 +327,16 @@ export default function TemplatesPage() {
     }
   }
 
+  function getFileLabel(isUploading: boolean, currentUrl: string): string {
+    if (isUploading) return 'Enviando arquivo...'
+    if (currentUrl) return currentUrl.split('/').pop() || 'Arquivo enviado'
+    return 'Escolher arquivo'
+  }
+
   function getDisplayFields(item: Record<string, unknown>): { label: string; value: string }[] {
     if (!activeSection) return []
     return activeSection.fields
-      .filter(f => item[f.name] !== null && item[f.name] !== undefined && item[f.name] !== '')
+      .filter(f => f.type !== 'file' && item[f.name] !== null && item[f.name] !== undefined && item[f.name] !== '')
       .map(f => {
         let value = String(item[f.name])
         if (f.type === 'checkbox') value = item[f.name] ? 'Sim' : 'Não'
@@ -422,6 +472,10 @@ export default function TemplatesPage() {
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {activeSection?.fields.map(field => {
+              // Check showWhen condition
+              if (field.showWhen && !field.showWhen.values.includes(formData[field.showWhen.field] || '')) {
+                return null
+              }
               if (field.options) {
                 return (
                   <div key={field.name} className="flex flex-col gap-1.5">
@@ -454,6 +508,36 @@ export default function TemplatesPage() {
                     <label htmlFor={`template-${field.name}`} className="font-inter text-sm text-brand-text">
                       {field.label}
                     </label>
+                  </div>
+                )
+              }
+              if (field.type === 'file') {
+                const isUploading = uploadingFields[field.name] || false
+                const currentUrl = formData[field.name] || ''
+                return (
+                  <div key={field.name} className="flex flex-col gap-1.5 sm:col-span-2">
+                    <label className="font-inter text-sm font-medium text-brand-text">{field.label}</label>
+                    <label className={`flex items-center gap-3 px-4 py-3 rounded-lg border border-dashed border-brand-border bg-brand-bg cursor-pointer hover:border-brand-gold/50 transition-colors ${isUploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                      <input
+                        type="file"
+                        accept={field.accept}
+                        className="hidden"
+                        disabled={isUploading}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file && field.bucket) {
+                            handleFileUpload(field.name, field.bucket, file)
+                          }
+                        }}
+                      />
+                      <Paperclip size={16} strokeWidth={1.5} className="text-brand-muted flex-shrink-0" />
+                      <span className="font-outfit text-sm text-brand-muted truncate">
+                        {getFileLabel(isUploading, currentUrl)}
+                      </span>
+                    </label>
+                    {currentUrl && !isUploading && (
+                      <p className="font-outfit text-xs text-brand-muted truncate">{currentUrl}</p>
+                    )}
                   </div>
                 )
               }
