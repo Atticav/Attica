@@ -19,12 +19,21 @@ const statusConfig: Record<
 
 const fallbackStatus = { label: 'Pendente', variant: 'neutral' as const }
 
-function formatCurrency(value: number, currency: string = 'BRL') {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-  }).format(value)
+function safeCurrency(currency: string | null | undefined): string {
+  if (!currency || currency.trim().length !== 3) return 'BRL'
+  return currency.trim().toUpperCase()
+}
+
+function formatCurrency(value: number, currency: string | null | undefined): string {
+  try {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: safeCurrency(currency),
+      minimumFractionDigits: 2,
+    }).format(value ?? 0)
+  } catch {
+    return `${safeCurrency(currency)} ${(value ?? 0).toFixed(2)}`
+  }
 }
 
 export default function FinancialPage() {
@@ -34,15 +43,20 @@ export default function FinancialPage() {
 
   const loadData = useCallback(async () => {
     setLoading(true)
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from('financial_items')
-      .select('*')
-      .eq('trip_id', tripId)
-      .order('created_at', { ascending: true })
+    try {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('financial_items')
+        .select('*')
+        .eq('trip_id', tripId)
+        .order('created_at', { ascending: true })
 
-    if (!error && data) setItems(data)
-    setLoading(false)
+      if (!error && data) setItems(data)
+    } catch {
+      // silently ignore load errors – page shows empty state
+    } finally {
+      setLoading(false)
+    }
   }, [tripId])
 
   useEffect(() => {
@@ -62,6 +76,7 @@ export default function FinancialPage() {
 
   const totalEstimado = items.reduce((sum, item) => sum + (item.amount ?? 0), 0)
   const totalReal = items.reduce((sum, item) => sum + (item.amount_brl ?? 0), 0)
+  const displayCurrency = safeCurrency(items[0]?.currency)
 
   if (items.length === 0) {
     return (
@@ -97,7 +112,7 @@ export default function FinancialPage() {
             Total Estimado
           </p>
           <p className="font-cormorant text-2xl font-semibold text-brand-title">
-            {formatCurrency(totalEstimado, items[0]?.currency || 'BRL')}
+            {formatCurrency(totalEstimado, displayCurrency)}
           </p>
         </Card>
         <Card padding="md">
@@ -178,7 +193,7 @@ export default function FinancialPage() {
                 </td>
                 <td className="px-5 py-4 text-right">
                   <span className="font-inter text-sm font-semibold text-brand-title">
-                    {formatCurrency(totalEstimado, items[0]?.currency || 'BRL')}
+                    {formatCurrency(totalEstimado, displayCurrency)}
                   </span>
                 </td>
                 <td className="px-5 py-4 text-right">
