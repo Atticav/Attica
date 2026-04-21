@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { DollarSign, Receipt } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { useLanguage } from '@/lib/i18n/LanguageContext'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import type { FinancialItem, FinancialItemStatus } from '@/lib/types'
@@ -18,6 +17,8 @@ const statusConfig: Record<
   refunded: { label: 'Reembolsado', variant: 'error' },
 }
 
+const fallbackStatus = { label: 'Pendente', variant: 'neutral' as const }
+
 function formatCurrency(value: number, currency: string = 'BRL') {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -28,7 +29,6 @@ function formatCurrency(value: number, currency: string = 'BRL') {
 
 export default function FinancialPage() {
   const { tripId } = useParams<{ tripId: string }>()
-  const { t } = useLanguage()
   const [items, setItems] = useState<FinancialItem[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -60,7 +60,7 @@ export default function FinancialPage() {
     )
   }
 
-  const totalEstimado = items.reduce((sum, item) => sum + item.amount, 0)
+  const totalEstimado = items.reduce((sum, item) => sum + (item.amount ?? 0), 0)
   const totalReal = items.reduce((sum, item) => sum + (item.amount_brl ?? 0), 0)
 
   if (items.length === 0) {
@@ -132,7 +132,7 @@ export default function FinancialPage() {
             </thead>
             <tbody className="divide-y divide-brand-border">
               {items.map((item) => {
-                const status = statusConfig[item.status]
+                const status = statusConfig[item.status] ?? fallbackStatus
                 return (
                   <tr key={item.id} className="hover:bg-brand-hover/50 transition-colors">
                     <td className="px-5 py-4">
@@ -154,12 +154,12 @@ export default function FinancialPage() {
                     </td>
                     <td className="px-5 py-4 text-right">
                       <span className="font-inter text-sm text-brand-text">
-                        {formatCurrency(item.amount, item.currency)}
+                        {formatCurrency(item.amount ?? 0, item.currency)}
                       </span>
                     </td>
                     <td className="px-5 py-4 text-right">
                       <span className="font-inter text-sm text-brand-text">
-                        {item.amount_brl !== null
+                        {item.amount_brl != null
                           ? formatCurrency(item.amount_brl, 'BRL')
                           : '—'}
                       </span>
