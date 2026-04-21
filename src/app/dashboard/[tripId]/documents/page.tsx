@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { useParams } from 'next/navigation'
 import {
   FileText,
@@ -50,6 +50,8 @@ export default function DocumentsPage() {
   const [formDescription, setFormDescription] = useState('')
   const [formExpiry, setFormExpiry] = useState('')
   const [formNotes, setFormNotes] = useState('')
+  const [formFile, setFormFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -74,6 +76,8 @@ export default function DocumentsPage() {
     setFormDescription('')
     setFormExpiry('')
     setFormNotes('')
+    setFormFile(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const handleAdd = async (e: FormEvent) => {
@@ -82,6 +86,25 @@ export default function DocumentsPage() {
 
     setSaving(true)
     const supabase = createClient()
+
+    let fileUrl: string | null = null
+    if (formFile) {
+      const timestamp = Date.now()
+      const safeName = formFile.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+      const path = `${tripId}/${timestamp}-${safeName}`
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(path, formFile)
+      if (uploadError) {
+        setSaving(false)
+        return
+      }
+      const { data: urlData } = supabase.storage
+        .from('documents')
+        .getPublicUrl(uploadData.path)
+      fileUrl = urlData.publicUrl
+    }
+
     const maxOrder = documents.length > 0
       ? Math.max(...documents.map((d) => d.order_index))
       : -1
@@ -93,6 +116,7 @@ export default function DocumentsPage() {
       description: formDescription.trim() || null,
       expiry_date: formExpiry || null,
       notes: formNotes.trim() || null,
+      file_url: fileUrl,
       order_index: maxOrder + 1,
     })
 
@@ -280,6 +304,20 @@ export default function DocumentsPage() {
             value={formExpiry}
             onChange={(e) => setFormExpiry(e.target.value)}
           />
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="doc-file" className="font-inter text-sm font-medium text-brand-text">
+              Arquivo <span className="font-normal text-brand-muted">(opcional)</span>
+            </label>
+            <input
+              id="doc-file"
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+              onChange={(e) => setFormFile(e.target.files?.[0] ?? null)}
+              className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-2.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-brand-gold/10 file:text-brand-gold hover:file:bg-brand-gold/20 cursor-pointer"
+            />
+          </div>
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="doc-notes" className="font-inter text-sm font-medium text-brand-text">
