@@ -5,7 +5,7 @@ import Card from '@/components/ui/Card'
 import Modal from '@/components/ui/Modal'
 import Input from '@/components/ui/Input'
 import { ToastContainer } from '@/components/ui/Toast'
-import { Plus, Edit2, Trash2, Luggage, CheckSquare, Link2, Clapperboard, Camera, BookOpen, Paperclip, Volume2, Sparkles } from 'lucide-react'
+import { Plus, Edit2, Trash2, Luggage, CheckSquare, Link2, Clapperboard, Camera, BookOpen, Paperclip, ExternalLink, Volume2, Sparkles } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 const OPTION_LABELS: Record<string, string> = {
@@ -122,7 +122,8 @@ const SECTIONS: SectionConfig[] = [
     table: 'template_strategic',
     fields: [
       { name: 'title', label: 'Título', required: true },
-      { name: 'content', label: 'Conteúdo' },
+      { name: 'content', label: 'Conteúdo', type: 'textarea' },
+      { name: 'url', label: 'Link (URL)', type: 'url' },
       { name: 'order_index', label: 'Ordem', type: 'number', default: 0 },
     ],
   },
@@ -378,7 +379,8 @@ export default function TemplatesPage() {
     return 'Escolher arquivo'
   }
 
-  function getDisplayFields(item: Record<string, unknown>): { label: string; value: string }[] {
+  function getDisplayFields(item: Record<string, unknown>): { label: string; value: string; isUrl?: boolean; href?: string }[] {
+    const MAX_DISPLAY_LENGTH = 60
     if (!activeSection) return []
     return activeSection.fields
       .filter(f => f.type !== 'file' && item[f.name] !== null && item[f.name] !== undefined && item[f.name] !== '')
@@ -386,7 +388,20 @@ export default function TemplatesPage() {
         let value = String(item[f.name])
         if (f.type === 'checkbox') value = item[f.name] ? 'Sim' : 'Não'
         else if (f.options) value = OPTION_LABELS[value] || value
-        else if (value.length > 60) value = value.slice(0, 60) + '...'
+        else if (f.type === 'url') {
+          const raw = value
+          let safe: string | undefined
+          try {
+            const parsed = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`)
+            if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+              safe = parsed.href
+            }
+          } catch {
+            safe = undefined
+          }
+          return { label: f.label, value: raw.length > MAX_DISPLAY_LENGTH ? raw.slice(0, MAX_DISPLAY_LENGTH) + '...' : raw, isUrl: true, href: safe }
+        }
+        else if (value.length > MAX_DISPLAY_LENGTH) value = value.slice(0, MAX_DISPLAY_LENGTH) + '...'
         return { label: f.label, value }
       })
   }
@@ -473,10 +488,23 @@ export default function TemplatesPage() {
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-wrap gap-x-6 gap-y-1">
-                            {displayFields.map(({ label, value }) => (
+                            {displayFields.map(({ label, value, isUrl, href }) => (
                               <div key={label} className="min-w-0">
                                 <span className="font-inter text-xs text-brand-muted">{label}: </span>
-                                <span className="font-outfit text-sm text-brand-text">{value}</span>
+                                {isUrl && href ? (
+                                  <a
+                                    href={href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 font-outfit text-sm text-brand-gold hover:underline"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {value}
+                                    <ExternalLink size={12} strokeWidth={1.5} />
+                                  </a>
+                                ) : (
+                                  <span className="font-outfit text-sm text-brand-text">{value}</span>
+                                )}
                               </div>
                             ))}
                           </div>
@@ -652,6 +680,22 @@ export default function TemplatesPage() {
                     {currentUrl && !isUploading && (
                       <p className="font-outfit text-xs text-brand-muted truncate">{currentUrl}</p>
                     )}
+                  </div>
+                )
+              }
+              if (field.type === 'textarea') {
+                return (
+                  <div key={field.name} className="flex flex-col gap-1.5 sm:col-span-2">
+                    <label className="font-inter text-sm font-medium text-brand-text">
+                      {field.label}{field.required && ' *'}
+                    </label>
+                    <textarea
+                      rows={4}
+                      value={formData[field.name] || ''}
+                      onChange={(e) => setFormData(p => ({ ...p, [field.name]: e.target.value }))}
+                      placeholder={field.label}
+                      className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent resize-none"
+                    />
                   </div>
                 )
               }
