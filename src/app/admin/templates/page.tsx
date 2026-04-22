@@ -5,7 +5,7 @@ import Card from '@/components/ui/Card'
 import Modal from '@/components/ui/Modal'
 import Input from '@/components/ui/Input'
 import { ToastContainer } from '@/components/ui/Toast'
-import { Plus, Edit2, Trash2, Luggage, CheckSquare, Link2, Clapperboard, Camera, BookOpen, Paperclip } from 'lucide-react'
+import { Plus, Edit2, Trash2, Luggage, CheckSquare, Link2, Clapperboard, Camera, BookOpen, Paperclip, Volume2, Sparkles } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 const OPTION_LABELS: Record<string, string> = {
@@ -20,6 +20,49 @@ const OPTION_LABELS: Record<string, string> = {
   youtube: 'YouTube',
   pdf: 'PDF',
   link: 'Link',
+}
+
+const LANGUAGE_OPTIONS = [
+  { value: 'en', label: 'Inglês' },
+  { value: 'es', label: 'Espanhol' },
+  { value: 'fr', label: 'Francês' },
+  { value: 'it', label: 'Italiano' },
+  { value: 'de', label: 'Alemão' },
+  { value: 'ja', label: 'Japonês' },
+  { value: 'zh', label: 'Chinês' },
+  { value: 'ar', label: 'Árabe' },
+  { value: 'ko', label: 'Coreano' },
+  { value: 'ru', label: 'Russo' },
+]
+
+async function translateText(text: string, targetLang: string): Promise<string> {
+  try {
+    const res = await fetch(
+      `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=pt|${targetLang}`
+    )
+    if (!res.ok) {
+      console.error('Translation API error:', res.status, res.statusText)
+      return ''
+    }
+    const data = await res.json()
+    return data?.responseData?.translatedText || ''
+  } catch (err) {
+    console.error('Translation fetch error:', err)
+    return ''
+  }
+}
+
+function speakWord(text: string, langCode: string) {
+  if (typeof window === 'undefined' || !window.speechSynthesis) return
+  const langMap: Record<string, string> = {
+    es: 'es-ES', fr: 'fr-FR', it: 'it-IT', de: 'de-DE', ja: 'ja-JP',
+    en: 'en-US', zh: 'zh-CN', ar: 'ar-SA', ko: 'ko-KR', ru: 'ru-RU',
+  }
+  const utterance = new SpeechSynthesisUtterance(text)
+  utterance.lang = langMap[langCode] || 'en-US'
+  utterance.rate = 0.8
+  window.speechSynthesis.cancel()
+  window.speechSynthesis.speak(utterance)
 }
 
 interface FieldConfig {
@@ -117,6 +160,7 @@ const SECTIONS: SectionConfig[] = [
     table: 'template_vocabulary',
     fields: [
       { name: 'portuguese', label: 'Português', required: true },
+      { name: 'language_code', label: 'Idioma alvo' },
       { name: 'local_language', label: 'Idioma local', required: true },
       { name: 'pronunciation', label: 'Pronúncia' },
       { name: 'category', label: 'Categoria' },
@@ -137,7 +181,7 @@ export default function TemplatesPage() {
   const [toasts, setToasts] = useState<{ id: string; message: string; type: 'success' | 'error' | 'info' }[]>([])
   const [itemCounts, setItemCounts] = useState<Record<string, number>>({})
   const [uploadingFields, setUploadingFields] = useState<Record<string, boolean>>({})
-
+  const [translating, setTranslating] = useState(false)
   const addToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
     const id = Math.random().toString(36).slice(2)
     setToasts(prev => [...prev, { id, message, type }])
@@ -197,6 +241,7 @@ export default function TemplatesPage() {
     setEditItem(null)
     const initial: Record<string, string> = {}
     activeSection.fields.forEach(f => { initial[f.name] = '' })
+    if (activeSection.key === 'vocabulary') initial['language_code'] = 'en'
     setFormData(initial)
     setUploadingFields({})
     setModalOpen(true)
@@ -437,6 +482,16 @@ export default function TemplatesPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
+                          {activeSection?.key === 'vocabulary' && !!item.local_language && (
+                            <button
+                              onClick={() => speakWord(String(item.local_language), String(item.language_code || 'en'))}
+                              className="p-1.5 rounded-lg text-brand-muted hover:text-brand-gold hover:bg-brand-bg-secondary transition-all flex-shrink-0"
+                              title="Ouvir pronúncia"
+                              type="button"
+                            >
+                              <Volume2 size={14} strokeWidth={1.5} />
+                            </button>
+                          )}
                           <button
                             onClick={() => openEdit(item)}
                             className="p-1.5 text-brand-muted hover:text-brand-gold hover:bg-brand-bg-secondary rounded-lg transition-all"
@@ -475,6 +530,65 @@ export default function TemplatesPage() {
               // Check showWhen condition
               if (field.showWhen && !field.showWhen.values.includes(formData[field.showWhen.field] || '')) {
                 return null
+              }
+              // Vocabulary: language_code → select with LANGUAGE_OPTIONS
+              if (activeSection?.key === 'vocabulary' && field.name === 'language_code') {
+                return (
+                  <div key={field.name} className="flex flex-col gap-1.5">
+                    <label className="font-inter text-sm font-medium text-brand-text">Idioma alvo</label>
+                    <select
+                      value={formData['language_code'] || 'en'}
+                      onChange={(e) => setFormData(p => ({ ...p, language_code: e.target.value }))}
+                      className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent"
+                    >
+                      {LANGUAGE_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                )
+              }
+              // Vocabulary: local_language → input + translate button
+              if (activeSection?.key === 'vocabulary' && field.name === 'local_language') {
+                return (
+                  <div key={field.name} className="flex flex-col gap-1.5 sm:col-span-2">
+                    <label className="font-inter text-sm font-medium text-brand-text">
+                      {field.label}{field.required && ' *'}
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        value={formData[field.name] || ''}
+                        onChange={(e) => setFormData(p => ({ ...p, [field.name]: e.target.value }))}
+                        className="flex-1 rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent"
+                        placeholder="Tradução automática ou manual"
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!formData['portuguese']?.trim()) {
+                            addToast('Digite a palavra em português primeiro', 'error')
+                            return
+                          }
+                          setTranslating(true)
+                          const translated = await translateText(
+                            formData['portuguese'],
+                            formData['language_code'] || 'en'
+                          )
+                          if (translated) setFormData(p => ({ ...p, local_language: translated }))
+                          else addToast('Não foi possível traduzir automaticamente', 'error')
+                          setTranslating(false)
+                        }}
+                        disabled={translating}
+                        className="px-3 py-2 bg-brand-gold text-white rounded-lg font-inter text-xs font-medium hover:bg-brand-gold-dark transition-colors disabled:opacity-60 whitespace-nowrap flex items-center gap-1.5"
+                      >
+                        {translating
+                          ? <span className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin inline-block" />
+                          : <Sparkles size={14} strokeWidth={1.5} />}
+                        Traduzir
+                      </button>
+                    </div>
+                  </div>
+                )
               }
               if (field.options) {
                 return (
