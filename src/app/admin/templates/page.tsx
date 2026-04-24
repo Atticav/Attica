@@ -75,7 +75,8 @@ const SECTIONS: SectionConfig[] = [
     table: 'template_strategic',
     fields: [
       { name: 'title', label: 'Título', required: true },
-      { name: 'content', label: 'Conteúdo' },
+      { name: 'content', label: 'Conteúdo', type: 'textarea' },
+      { name: 'url', label: 'Link (URL)' },
       { name: 'order_index', label: 'Ordem', type: 'number', default: 0 },
     ],
   },
@@ -140,7 +141,6 @@ export default function TemplatesPage() {
     setToasts(prev => [...prev, { id, message, type }])
   }
 
-  // Load item counts for all sections on mount
   useEffect(() => {
     async function loadCounts() {
       const supabase = createClient()
@@ -252,7 +252,6 @@ export default function TemplatesPage() {
       const payload: Record<string, unknown> = {}
       activeSection.fields.forEach(f => {
         if (f.type === 'file') {
-          // only include if a URL was set
           payload[f.name] = formData[f.name] || null
           return
         }
@@ -295,7 +294,6 @@ export default function TemplatesPage() {
 
       setModalOpen(false)
       loadItems()
-      // Update count
       setItemCounts(prev => ({
         ...prev,
         [activeSection.key]: editItem ? prev[activeSection.key] : (prev[activeSection.key] || 0) + 1,
@@ -394,7 +392,6 @@ export default function TemplatesPage() {
       >
         {activeSection && (
           <div>
-            {/* Add button */}
             <div className="flex items-center justify-between mb-4">
               <p className="font-outfit text-sm text-brand-muted">
                 {items.length} {items.length === 1 ? 'item' : 'itens'} no template
@@ -408,7 +405,6 @@ export default function TemplatesPage() {
               </button>
             </div>
 
-            {/* Items list */}
             {loading ? (
               <div className="p-8 text-center font-outfit text-brand-muted">Carregando...</div>
             ) : items.length === 0 ? (
@@ -469,6 +465,7 @@ export default function TemplatesPage() {
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {activeSection?.fields.map(field => {
+              // File upload field
               if (field.type === 'file') {
                 const isUploading = uploadingFields[field.name]
                 const uploadedUrl = formData[field.name]
@@ -513,6 +510,25 @@ export default function TemplatesPage() {
                 )
               }
 
+              // Textarea field
+              if (field.type === 'textarea') {
+                return (
+                  <div key={field.name} className="flex flex-col gap-1.5 sm:col-span-2">
+                    <label className="font-inter text-sm font-medium text-brand-text">
+                      {field.label}{field.required && ' *'}
+                    </label>
+                    <textarea
+                      value={formData[field.name] || ''}
+                      onChange={(e) => setFormData(p => ({ ...p, [field.name]: e.target.value }))}
+                      placeholder={field.label}
+                      rows={4}
+                      className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent resize-none"
+                    />
+                  </div>
+                )
+              }
+
+              // Select field
               if (field.options) {
                 return (
                   <div key={field.name} className="flex flex-col gap-1.5">
@@ -533,6 +549,7 @@ export default function TemplatesPage() {
                 )
               }
 
+              // Checkbox field
               if (field.type === 'checkbox') {
                 return (
                   <div key={field.name} className="flex items-center gap-3">
@@ -550,6 +567,7 @@ export default function TemplatesPage() {
                 )
               }
 
+              // Default: text/number input
               return (
                 <Input
                   key={field.name}
