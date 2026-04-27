@@ -76,6 +76,7 @@ const SECTIONS: SectionConfig[] = [
     fields: [
       { name: 'title', label: 'Título', required: true },
       { name: 'content', label: 'Conteúdo', type: 'textarea' },
+      { name: 'url', label: 'Link (URL)' },
       { name: 'order_index', label: 'Ordem', type: 'number', default: 0 },
     ],
   },
