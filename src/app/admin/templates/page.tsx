@@ -5,7 +5,7 @@ import Card from '@/components/ui/Card'
 import Modal from '@/components/ui/Modal'
 import Input from '@/components/ui/Input'
 import { ToastContainer } from '@/components/ui/Toast'
-import { Plus, Edit2, Trash2, Luggage, CheckSquare, Link2, Clapperboard, Camera, BookOpen, Paperclip } from 'lucide-react'
+import { Plus, Edit2, Trash2, Luggage, CheckSquare, Link2, Clapperboard, Camera, BookOpen, Paperclip, FolderOpen } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 const OPTION_LABELS: Record<string, string> = {
@@ -117,6 +117,16 @@ const SECTIONS: SectionConfig[] = [
       { name: 'local_language', label: 'Idioma local', required: true },
       { name: 'pronunciation', label: 'Pronúncia' },
       { name: 'category', label: 'Categoria' },
+      { name: 'order_index', label: 'Ordem', type: 'number', default: 0 },
+    ],
+  },
+  {
+    key: 'gallery',
+    label: 'Galeria',
+    icon: <FolderOpen size={28} strokeWidth={1.5} />,
+    table: 'template_gallery',
+    fields: [
+      { name: 'name', label: 'Nome do álbum', required: true },
       { name: 'order_index', label: 'Ordem', type: 'number', default: 0 },
     ],
   },
