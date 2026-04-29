@@ -12,8 +12,8 @@ const SECTION_TABLE_MAP: Record<string, string> = {
   gallery: 'gallery_items',
   restaurants: 'restaurants',
   photography: 'photography_tips',
-  culture: 'cultural_infos',
-  vocabulary: 'vocabularies',
+  culture: 'cultural_info',
+  vocabulary: 'vocabulary',
   contract: 'contracts',
 }
 

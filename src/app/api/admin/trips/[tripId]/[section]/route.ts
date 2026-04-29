@@ -12,13 +12,13 @@ const SECTION_TABLE_MAP: Record<string, string> = {
   gallery: 'gallery_items',
   restaurants: 'restaurants',
   photography: 'photography_tips',
-  culture: 'cultural_infos',
-  vocabulary: 'vocabularies',
+  culture: 'cultural_info',
+  vocabulary: 'vocabulary',
   contract: 'contracts',
 }
 
 // Tables that do not have an order_index column — fall back to created_at ordering
-const TABLES_WITHOUT_ORDER = new Set(['contracts'])
+const TABLES_WITHOUT_ORDER = new Set(['contracts', 'financial_items'])
 
 async function verifyAdmin() {
   const supabase = await createClient()
