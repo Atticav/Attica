@@ -48,7 +48,7 @@ const SECTIONS: SectionConfig[] = [
     icon: <Luggage size={28} strokeWidth={1.5} />,
     table: 'template_packing',
     fields: [
-      { name: 'name', label: 'Item', required: true },
+      { name: 'item_name', label: 'Item', required: true },
       { name: 'category', label: 'Categoria', options: ['clothing', 'documents', 'health', 'electronics', 'toiletries', 'accessories', 'other'] },
       { name: 'quantity', label: 'Quantidade', type: 'number', default: 1 },
       { name: 'is_essential', label: 'Essencial', type: 'checkbox' },
