@@ -37,7 +37,8 @@ async function verifyAdmin() {
 export async function GET(request: Request, { params }: { params: Promise<{ tripId: string; section: string }> }) {
   const auth = await verifyAdmin()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
-  const supabase = createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase: any = createAdminClient()
   const { tripId, section } = await params
   const table = SECTION_TABLE_MAP[section]
   if (!table) return NextResponse.json({ error: 'Invalid section' }, { status: 400 })
@@ -46,7 +47,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ trip
     .select('*')
     .eq('trip_id', tripId)
 
-  // order_index may not exist in all tables; fall back to created_at for those
   const { data, error } = TABLES_WITHOUT_ORDER.has(table)
     ? await query.order('created_at', { ascending: true })
     : await query.order('order_index', { ascending: true })
@@ -57,7 +57,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ trip
 export async function POST(request: Request, { params }: { params: Promise<{ tripId: string; section: string }> }) {
   const auth = await verifyAdmin()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
-  const supabase = createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase: any = createAdminClient()
   const { tripId, section } = await params
   const table = SECTION_TABLE_MAP[section]
   if (!table) return NextResponse.json({ error: 'Invalid section' }, { status: 400 })
