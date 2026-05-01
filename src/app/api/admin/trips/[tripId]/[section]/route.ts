@@ -37,7 +37,8 @@ async function verifyAdmin() {
 export async function GET(request: Request, { params }: { params: Promise<{ tripId: string; section: string }> }) {
   const auth = await verifyAdmin()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
-  const supabase = createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = createAdminClient() as any
   const { tripId, section } = await params
   const table = SECTION_TABLE_MAP[section]
   if (!table) return NextResponse.json({ error: 'Invalid section' }, { status: 400 })
@@ -57,7 +58,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ trip
 export async function POST(request: Request, { params }: { params: Promise<{ tripId: string; section: string }> }) {
   const auth = await verifyAdmin()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
-  const supabase = createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = createAdminClient() as any
   const { tripId, section } = await params
   const table = SECTION_TABLE_MAP[section]
   if (!table) return NextResponse.json({ error: 'Invalid section' }, { status: 400 })
