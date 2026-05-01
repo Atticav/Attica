@@ -14,15 +14,6 @@ import Input from '@/components/ui/Input'
 import { ToastContainer } from '@/components/ui/Toast'
 import type { GalleryAlbum, GalleryItem } from '@/lib/types'
 
-const DEFAULT_ALBUMS = [
-  'Fotos da Viagem',
-  'Paisagens',
-  'Gastronomia',
-  'Cultura & Pontos Turísticos',
-  'Momentos Especiais',
-  'Documentos Visuais',
-]
-
 const MAX_FILE_SIZE_MB = 100
 
 export default function AdminGalleryPage({ params }: { params: Promise<{ tripId: string }> }) {
@@ -65,37 +56,15 @@ export default function AdminGalleryPage({ params }: { params: Promise<{ tripId:
 
   const loadAlbums = useCallback(async () => {
     setLoading(true)
-    const supabase = createClient()
     try {
-      const { data: albumData, error } = await supabase
-        .from('gallery_albums')
-        .select('*')
-        .eq('trip_id', tripId)
-        .order('order_index', { ascending: true })
-
-      if (error) throw error
-
-      let list: GalleryAlbum[] = albumData ?? []
-
-      // If no albums exist, create the default ones
-      if (list.length === 0) {
-        const defaultInserts = DEFAULT_ALBUMS.map((name, i) => ({
-          trip_id: tripId,
-          name,
-          visible: true,
-          order_index: i,
-        }))
-        const { data: created, error: insertError } = await supabase
-          .from('gallery_albums')
-          .insert(defaultInserts)
-          .select()
-        if (!insertError && created) list = created
-      }
-
+      const res = await fetch(`/api/admin/trips/${tripId}/gallery-albums`)
+      if (!res.ok) throw new Error('Erro ao carregar álbuns')
+      const list: GalleryAlbum[] = await res.json()
       setAlbums(list)
 
       // Load item counts and thumbnails for each album
       if (list.length > 0) {
+        const supabase = createClient()
         const counts: Record<string, number> = {}
         const thumbs: Record<string, string> = {}
         for (const album of list) {
@@ -161,12 +130,12 @@ export default function AdminGalleryPage({ params }: { params: Promise<{ tripId:
   }, [lightboxIndex, albumItems.length])
 
   async function handleToggleVisibility(album: GalleryAlbum) {
-    const supabase = createClient()
-    const { error } = await supabase
-      .from('gallery_albums')
-      .update({ visible: !album.visible })
-      .eq('id', album.id)
-    if (error) {
+    const res = await fetch(`/api/admin/trips/${tripId}/gallery-albums/${album.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ visible: !album.visible }),
+    })
+    if (!res.ok) {
       addToast('Erro ao atualizar visibilidade', 'error')
     } else {
       setAlbums(prev => prev.map(a => a.id === album.id ? { ...a, visible: !a.visible } : a))
@@ -176,15 +145,15 @@ export default function AdminGalleryPage({ params }: { params: Promise<{ tripId:
   async function handleCreateAlbum() {
     if (!newAlbumName.trim()) return
     setSavingAlbum(true)
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from('gallery_albums')
-      .insert({ trip_id: tripId, name: newAlbumName.trim(), visible: true, order_index: albums.length })
-      .select()
-      .single()
-    if (error) {
+    const res = await fetch(`/api/admin/trips/${tripId}/gallery-albums`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newAlbumName.trim(), visible: true, order_index: albums.length }),
+    })
+    if (!res.ok) {
       addToast('Erro ao criar álbum', 'error')
-    } else if (data) {
+    } else {
+      const data = await res.json()
       setAlbums(prev => [...prev, data])
       setAlbumItemCounts(prev => ({ ...prev, [data.id]: 0 }))
       setNewAlbumName('')
@@ -197,12 +166,12 @@ export default function AdminGalleryPage({ params }: { params: Promise<{ tripId:
   async function handleRenameAlbum() {
     if (!renameAlbum || !renameValue.trim()) return
     setSavingAlbum(true)
-    const supabase = createClient()
-    const { error } = await supabase
-      .from('gallery_albums')
-      .update({ name: renameValue.trim() })
-      .eq('id', renameAlbum.id)
-    if (error) {
+    const res = await fetch(`/api/admin/trips/${tripId}/gallery-albums/${renameAlbum.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: renameValue.trim() }),
+    })
+    if (!res.ok) {
       addToast('Erro ao renomear álbum', 'error')
     } else {
       setAlbums(prev => prev.map(a => a.id === renameAlbum.id ? { ...a, name: renameValue.trim() } : a))
@@ -216,9 +185,10 @@ export default function AdminGalleryPage({ params }: { params: Promise<{ tripId:
   }
 
   async function handleDeleteAlbum(albumId: string) {
-    const supabase = createClient()
-    const { error } = await supabase.from('gallery_albums').delete().eq('id', albumId)
-    if (error) {
+    const res = await fetch(`/api/admin/trips/${tripId}/gallery-albums/${albumId}`, {
+      method: 'DELETE',
+    })
+    if (!res.ok) {
       addToast('Erro ao excluir álbum', 'error')
     } else {
       setAlbums(prev => prev.filter(a => a.id !== albumId))
@@ -263,18 +233,20 @@ export default function AdminGalleryPage({ params }: { params: Promise<{ tripId:
       return
     }
     setSavingItem(true)
-    const supabase = createClient()
-    const { error } = await supabase.from('gallery_items').insert({
-      trip_id: tripId,
-      album_id: activeAlbum.id,
-      file_url: itemForm.file_url,
-      type: itemForm.type,
-      title: itemForm.title.trim() || null,
-      description: itemForm.description.trim() || null,
-      location: itemForm.location.trim() || null,
-      order_index: albumItems.length,
+    const res = await fetch(`/api/admin/trips/${tripId}/gallery`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        album_id: activeAlbum.id,
+        file_url: itemForm.file_url,
+        type: itemForm.type,
+        title: itemForm.title.trim() || null,
+        description: itemForm.description.trim() || null,
+        location: itemForm.location.trim() || null,
+        order_index: albumItems.length,
+      }),
     })
-    if (error) {
+    if (!res.ok) {
       addToast('Erro ao adicionar item', 'error')
     } else {
       addToast('Item adicionado!', 'success')
@@ -288,9 +260,10 @@ export default function AdminGalleryPage({ params }: { params: Promise<{ tripId:
 
   async function handleDeleteItem(itemId: string) {
     if (!activeAlbum) return
-    const supabase = createClient()
-    const { error } = await supabase.from('gallery_items').delete().eq('id', itemId)
-    if (error) {
+    const res = await fetch(`/api/admin/trips/${tripId}/gallery/${itemId}`, {
+      method: 'DELETE',
+    })
+    if (!res.ok) {
       addToast('Erro ao excluir item', 'error')
     } else {
       setDeleteItemId(null)
