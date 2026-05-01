@@ -233,20 +233,28 @@ export default function AdminGalleryPage({ params }: { params: Promise<{ tripId:
       return
     }
     setUploadingFile(true)
-    const supabase = createClient()
-    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
-    const path = `${tripId}/${Date.now()}-${safeName}`
-    const { data, error } = await supabase.storage.from('gallery').upload(path, file, { upsert: true })
-    if (error) {
+    try {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+      const path = `${tripId}/${Date.now()}-${safeName}`
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('bucket', 'gallery')
+      fd.append('path', path)
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+      if (!res.ok) {
+        addToast('Erro ao enviar arquivo', 'error')
+        setUploadingFile(false)
+        return
+      }
+      const { publicUrl } = await res.json()
+      const isVideo = file.type.startsWith('video/')
+      setItemForm(prev => ({ ...prev, file_url: publicUrl, type: isVideo ? 'video' : 'photo' }))
+      setUploadingFile(false)
+      addToast('Arquivo enviado!', 'success')
+    } catch {
       addToast('Erro ao enviar arquivo', 'error')
       setUploadingFile(false)
-      return
     }
-    const { data: urlData } = supabase.storage.from('gallery').getPublicUrl(data.path)
-    const isVideo = file.type.startsWith('video/')
-    setItemForm(prev => ({ ...prev, file_url: urlData.publicUrl, type: isVideo ? 'video' : 'photo' }))
-    setUploadingFile(false)
-    addToast('Arquivo enviado!', 'success')
   }
 
   async function handleAddItem() {
