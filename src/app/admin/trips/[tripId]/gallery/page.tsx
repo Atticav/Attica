@@ -234,7 +234,8 @@ export default function AdminGalleryPage({ params }: { params: Promise<{ tripId:
     }
     setUploadingFile(true)
     const supabase = createClient()
-    const path = `${tripId}/${Date.now()}-${file.name}`
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+    const path = `${tripId}/${Date.now()}-${safeName}`
     const { data, error } = await supabase.storage.from('gallery').upload(path, file, { upsert: true })
     if (error) {
       addToast('Erro ao enviar arquivo', 'error')

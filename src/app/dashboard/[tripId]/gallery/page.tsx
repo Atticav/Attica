@@ -115,7 +115,8 @@ export default function GalleryPage() {
     let type: 'photo' | 'video' = 'photo'
 
     if (uploadFile) {
-      const path = `${tripId}/${Date.now()}-${uploadFile.name}`
+      const safeName = uploadFile.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+      const path = `${tripId}/${Date.now()}-${safeName}`
       const { data, error } = await supabase.storage.from('gallery').upload(path, uploadFile, { upsert: true })
       if (error) {
         setUploading(false)
