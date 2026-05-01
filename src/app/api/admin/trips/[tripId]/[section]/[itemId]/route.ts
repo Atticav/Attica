@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 
 const SECTION_TABLE_MAP: Record<string, string> = {
@@ -27,13 +28,13 @@ async function verifyAdmin() {
     .eq('id', user.id)
     .single()
   if (!profile || profile.role !== 'admin') return { error: 'Not authorized', status: 403 }
-  return { supabase, user }
+  return { user }
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ tripId: string; section: string; itemId: string }> }) {
   const auth = await verifyAdmin()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
-  const { supabase } = auth
+  const supabase = createAdminClient()
   const { tripId, section, itemId } = await params
   const table = SECTION_TABLE_MAP[section]
   if (!table) return NextResponse.json({ error: 'Invalid section' }, { status: 400 })
@@ -52,7 +53,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ tr
 export async function DELETE(request: Request, { params }: { params: Promise<{ tripId: string; section: string; itemId: string }> }) {
   const auth = await verifyAdmin()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
-  const { supabase } = auth
+  const supabase = createAdminClient()
   const { tripId, section, itemId } = await params
   const table = SECTION_TABLE_MAP[section]
   if (!table) return NextResponse.json({ error: 'Invalid section' }, { status: 400 })
