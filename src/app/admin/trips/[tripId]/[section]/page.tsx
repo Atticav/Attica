@@ -8,7 +8,7 @@ import Input from '@/components/ui/Input'
 import { ToastContainer } from '@/components/ui/Toast'
 import { ArrowLeft, Plus, Edit2, Trash2, Sparkles, Copy, Paperclip, Volume2 } from 'lucide-react'
 import Link from 'next/link'
-import { getLanguageCode, LANG_LABELS, LANG_SPEECH_CODES } from '@/lib/languageDetection'
+import { getLanguageCode, LANG_LABELS, speak } from '@/lib/languageDetection'
 
 const MAX_VIDEO_SIZE_MB = 50
 const MAX_PDF_SIZE_MB = 20
@@ -841,12 +841,7 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
                         disabled={!formData[field.name]}
                         onClick={() => {
                           const text = formData[field.name]
-                          if (!text || typeof window === 'undefined' || !window.speechSynthesis) return
-                          const utterance = new SpeechSynthesisUtterance(text)
-                          utterance.lang = LANG_SPEECH_CODES[langCode] || 'en-US'
-                          utterance.rate = 0.8
-                          window.speechSynthesis.cancel()
-                          window.speechSynthesis.speak(utterance)
+                          if (text) speak(text, langCode)
                         }}
                         className="p-2.5 rounded-lg border border-brand-border text-brand-muted hover:text-brand-gold hover:border-brand-gold/50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                       >

@@ -31,3 +31,12 @@ export function getLanguageCode(destination: string, country: string): string {
   if (/portugal|lisboa|porto/.test(lower)) return 'pt'
   return 'en'
 }
+
+export function speak(text: string, langCode: string): void {
+  if (typeof window === 'undefined' || !window.speechSynthesis) return
+  const utterance = new SpeechSynthesisUtterance(text)
+  utterance.lang = LANG_SPEECH_CODES[langCode] || 'en-US'
+  utterance.rate = 0.8
+  window.speechSynthesis.cancel()
+  window.speechSynthesis.speak(utterance)
+}

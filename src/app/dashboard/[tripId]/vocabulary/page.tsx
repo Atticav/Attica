@@ -7,19 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
-import { getLanguageCode, LANG_LABELS, LANG_SPEECH_CODES, LITTLE_LANGUAGE_URL } from '@/lib/languageDetection'
+import { getLanguageCode, LANG_LABELS, LITTLE_LANGUAGE_URL, speak } from '@/lib/languageDetection'
 import type { Vocabulary } from '@/lib/types'
-
-// ─── Speech ──────────────────────────────────────────────────────────
-
-function speak(text: string, langCode: string) {
-  if (typeof window === 'undefined' || !window.speechSynthesis) return
-  const utterance = new SpeechSynthesisUtterance(text)
-  utterance.lang = LANG_SPEECH_CODES[langCode] || 'en-US'
-  utterance.rate = 0.8
-  window.speechSynthesis.cancel()
-  window.speechSynthesis.speak(utterance)
-}
 
 // ─── Default vocabulary ──────────────────────────────────────────────
 

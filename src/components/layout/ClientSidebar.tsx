@@ -58,11 +58,11 @@ function buildNavItems(tripId: string, t: Translations, langCode?: string): NavI
     { href: `${base}/restaurants`, label: t.nav.restaurants, icon: <UtensilsCrossed size={18} strokeWidth={1.5} /> },
     { href: `${base}/photography`, label: t.nav.photography, icon: <Camera size={18} strokeWidth={1.5} /> },
     { href: `${base}/culture`, label: t.nav.culture, icon: <Globe size={18} strokeWidth={1.5} /> },
-    { href: `${base}/contract`, label: t.nav.contract, icon: <ScrollText size={18} strokeWidth={1.5} /> },
   ]
   if (langCode !== 'pt') {
-    items.splice(items.length - 1, 0, { href: `${base}/vocabulary`, label: t.nav.vocabulary, icon: <BookOpen size={18} strokeWidth={1.5} /> })
+    items.push({ href: `${base}/vocabulary`, label: t.nav.vocabulary, icon: <BookOpen size={18} strokeWidth={1.5} /> })
   }
+  items.push({ href: `${base}/contract`, label: t.nav.contract, icon: <ScrollText size={18} strokeWidth={1.5} /> })
   return items
 }
 
