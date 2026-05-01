@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 
 async function verifyAdmin() {
@@ -11,13 +12,13 @@ async function verifyAdmin() {
     .eq('id', user.id)
     .single()
   if (!profile || profile.role !== 'admin') return { error: 'Not authorized', status: 403 }
-  return { supabase, user }
+  return { user }
 }
 
 export async function GET() {
   const auth = await verifyAdmin()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
-  const { supabase } = auth
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('trips')
     .select('*, profile:profiles(id, full_name, email)')
@@ -29,7 +30,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const auth = await verifyAdmin()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
-  const { supabase } = auth
+  const supabase = createAdminClient()
   const body = await request.json()
   const { client_id, title, destination, country, start_date, end_date, status, notes, cover_image_url } = body
   if (!client_id || !title || !destination) return NextResponse.json({ error: 'client_id, title, and destination are required' }, { status: 400 })
