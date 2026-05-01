@@ -28,7 +28,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'file, bucket and path are required' }, { status: 400 })
   }
 
-  const supabase = createAdminClient()
+  let supabase
+  try {
+    supabase = createAdminClient()
+  } catch (err) {
+    console.error('Admin client error:', err)
+    return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+  }
+
   const arrayBuffer = await file.arrayBuffer()
   const buffer = Buffer.from(arrayBuffer)
 
@@ -39,7 +46,10 @@ export async function POST(request: Request) {
       upsert: true,
     })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('Storage upload error:', { bucket, path, error })
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
 
   const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(data.path)
   return NextResponse.json({ publicUrl: urlData.publicUrl })
