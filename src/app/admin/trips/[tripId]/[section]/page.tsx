@@ -362,7 +362,8 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
     setUploadingFields(p => ({ ...p, [fieldName]: true }))
     try {
       const supabase = createSupabaseClient()
-      const path = `${tripId}/${Date.now()}-${file.name}`
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+      const path = `${tripId}/${Date.now()}-${safeName}`
       const { data, error } = await supabase.storage
         .from(bucket)
         .upload(path, file, { upsert: true })
