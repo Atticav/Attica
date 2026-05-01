@@ -2,34 +2,20 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { BookOpen, Volume2, Sparkles } from 'lucide-react'
+import { BookOpen, Volume2, Sparkles, Headphones, ExternalLink } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
-import type { Vocabulary, Trip } from '@/lib/types'
+import { getLanguageCode, LANG_LABELS, LANG_SPEECH_CODES, LITTLE_LANGUAGE_URL } from '@/lib/languageDetection'
+import type { Vocabulary } from '@/lib/types'
 
-// ─── Language detection ──────────────────────────────────────────────
-
-function getLanguageCode(destination: string, country: string): string {
-  const lower = (destination + ' ' + country).toLowerCase()
-  if (/peru|argentina|espanha|chile|colombia|mexico|uruguai/.test(lower)) return 'es'
-  if (/fran[cç]a|paris/.test(lower)) return 'fr'
-  if (/it[aá]lia|roma|mil[aã]o|veneza/.test(lower)) return 'it'
-  if (/alemanha|berlin|munique/.test(lower)) return 'de'
-  if (/jap[aã]o|tokyo|kyoto/.test(lower)) return 'ja'
-  if (/estados unidos|eua|usa|nova york|miami|londres|inglaterra/.test(lower)) return 'en'
-  if (/portugal|lisboa|porto/.test(lower)) return 'pt'
-  return 'en'
-}
+// ─── Speech ──────────────────────────────────────────────────────────
 
 function speak(text: string, langCode: string) {
   if (typeof window === 'undefined' || !window.speechSynthesis) return
-  const langMap: Record<string, string> = {
-    es: 'es-ES', fr: 'fr-FR', it: 'it-IT', de: 'de-DE', ja: 'ja-JP', pt: 'pt-BR', en: 'en-US',
-  }
   const utterance = new SpeechSynthesisUtterance(text)
-  utterance.lang = langMap[langCode] || 'en-US'
+  utterance.lang = LANG_SPEECH_CODES[langCode] || 'en-US'
   utterance.rate = 0.8
   window.speechSynthesis.cancel()
   window.speechSynthesis.speak(utterance)
@@ -106,10 +92,6 @@ const DEFAULT_VOCABULARY: Record<string, { pt: string; translations: Record<stri
   ],
 }
 
-const LANG_LABELS: Record<string, string> = {
-  es: 'Espanhol', en: 'Inglês', fr: 'Francês', it: 'Italiano', de: 'Alemão', ja: 'Japonês', pt: 'Português',
-}
-
 // ─── Component ───────────────────────────────────────────────────────
 
 function SpeakButton({ text, langCode }: { text: string; langCode: string }) {
@@ -182,6 +164,26 @@ export default function VocabularyPage() {
           Palavras úteis em {LANG_LABELS[langCode] || 'Inglês'} para sua viagem
         </p>
       </div>
+
+      {langCode !== 'pt' && (
+        <div className="flex items-center justify-between gap-4 px-5 py-4 rounded-xl border border-brand-gold/30 bg-brand-gold/5">
+          <div className="flex items-center gap-3">
+            <Headphones size={20} strokeWidth={1.5} className="text-brand-gold flex-shrink-0" />
+            <p className="font-outfit text-sm text-brand-text">
+              Pratique a pronúncia em <span className="font-medium text-brand-title">{LANG_LABELS[langCode] || 'Inglês'}</span> com o Little Language
+            </p>
+          </div>
+          <a
+            href={LITTLE_LANGUAGE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-gold text-white font-inter text-xs font-medium hover:bg-brand-gold-dark transition-colors flex-shrink-0"
+          >
+            Acessar
+            <ExternalLink size={12} strokeWidth={2} />
+          </a>
+        </div>
+      )}
 
       {defaultCategories.map((category) => (
         <div key={category} className="space-y-3">
