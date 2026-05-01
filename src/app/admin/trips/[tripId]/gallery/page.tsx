@@ -14,7 +14,8 @@ import Input from '@/components/ui/Input'
 import { ToastContainer } from '@/components/ui/Toast'
 import type { GalleryAlbum, GalleryItem } from '@/lib/types'
 
-const MAX_FILE_SIZE_MB = 100
+// Vercel serverless functions have a 4.5MB body size limit
+const MAX_FILE_SIZE_MB = 4
 
 export default function AdminGalleryPage({ params }: { params: Promise<{ tripId: string }> }) {
   const { tripId } = use(params)
@@ -199,7 +200,7 @@ export default function AdminGalleryPage({ params }: { params: Promise<{ tripId:
 
   async function handleFileUpload(file: File) {
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      addToast(`Arquivo muito grande. Máximo: ${MAX_FILE_SIZE_MB}MB`, 'error')
+      addToast(`Arquivo muito grande. Máximo: ${MAX_FILE_SIZE_MB}MB. Para arquivos maiores, use a URL externa.`, 'error')
       return
     }
     setUploadingFile(true)
@@ -212,7 +213,12 @@ export default function AdminGalleryPage({ params }: { params: Promise<{ tripId:
       fd.append('path', path)
       const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
       if (!res.ok) {
-        addToast('Erro ao enviar arquivo', 'error')
+        if (res.status === 413) {
+          addToast(`Arquivo muito grande. Máximo: ${MAX_FILE_SIZE_MB}MB. Para arquivos maiores, use a URL externa.`, 'error')
+        } else {
+          const errData = await res.json().catch(() => ({}))
+          addToast(errData.error || 'Erro ao enviar arquivo', 'error')
+        }
         setUploadingFile(false)
         return
       }
@@ -525,7 +531,9 @@ export default function AdminGalleryPage({ params }: { params: Promise<{ tripId:
         <div className="space-y-4">
           {/* File upload */}
           <div className="flex flex-col gap-1.5">
-            <label className="font-inter text-sm font-medium text-brand-text">Upload de arquivo</label>
+            <label className="font-inter text-sm font-medium text-brand-text">
+              Upload de arquivo <span className="font-normal text-brand-muted">(máx. {MAX_FILE_SIZE_MB}MB)</span>
+            </label>
             <label className={`flex items-center gap-3 px-4 py-3 rounded-lg border border-dashed border-brand-border bg-brand-bg cursor-pointer hover:border-brand-gold/50 transition-colors ${uploadingFile ? 'opacity-60 cursor-not-allowed' : ''}`}>
               <input
                 type="file"
@@ -562,7 +570,7 @@ export default function AdminGalleryPage({ params }: { params: Promise<{ tripId:
               <select
                 value={itemForm.type}
                 onChange={(e) => setItemForm(prev => ({ ...prev, type: e.target.value as 'photo' | 'video' }))}
-                className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all"
+                className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent"
               >
                 <option value="photo">Foto</option>
                 <option value="video">Vídeo</option>
