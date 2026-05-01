@@ -18,7 +18,8 @@ async function verifyAdmin() {
 export async function GET(request: Request, { params }: { params: Promise<{ tripId: string }> }) {
   const auth = await verifyAdmin()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
-  const supabase = createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = createAdminClient() as any
   const { tripId } = await params
   const { data, error } = await supabase
     .from('trips')
@@ -32,7 +33,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ trip
 export async function PATCH(request: Request, { params }: { params: Promise<{ tripId: string }> }) {
   const auth = await verifyAdmin()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
-  const supabase = createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = createAdminClient() as any
   const { tripId } = await params
   const body = await request.json()
   const { title, destination, country, start_date, end_date, status, notes, cover_image_url } = body
@@ -49,7 +51,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ tr
 export async function DELETE(request: Request, { params }: { params: Promise<{ tripId: string }> }) {
   const auth = await verifyAdmin()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
-  const supabase = createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = createAdminClient() as any
   const { tripId } = await params
   const { error } = await supabase
     .from('trips')

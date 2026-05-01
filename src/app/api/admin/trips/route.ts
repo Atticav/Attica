@@ -18,7 +18,8 @@ async function verifyAdmin() {
 export async function GET() {
   const auth = await verifyAdmin()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
-  const supabase = createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = createAdminClient() as any
   const { data, error } = await supabase
     .from('trips')
     .select('*, profile:profiles(id, full_name, email)')
@@ -30,7 +31,8 @@ export async function GET() {
 export async function POST(request: Request) {
   const auth = await verifyAdmin()
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
-  const supabase = createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = createAdminClient() as any
   const body = await request.json()
   const { client_id, title, destination, country, start_date, end_date, status, notes, cover_image_url } = body
   if (!client_id || !title || !destination) return NextResponse.json({ error: 'client_id, title, and destination are required' }, { status: 400 })
