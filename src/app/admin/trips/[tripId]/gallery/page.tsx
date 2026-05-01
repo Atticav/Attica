@@ -251,8 +251,8 @@ export default function AdminGalleryPage({ params }: { params: Promise<{ tripId:
       setItemForm(prev => ({ ...prev, file_url: publicUrl, type: isVideo ? 'video' : 'photo' }))
       setUploadingFile(false)
       addToast('Arquivo enviado!', 'success')
-    } catch {
-      addToast('Erro ao enviar arquivo', 'error')
+    } catch (err: unknown) {
+      addToast(err instanceof Error ? err.message : 'Erro ao enviar arquivo', 'error')
       setUploadingFile(false)
     }
   }
