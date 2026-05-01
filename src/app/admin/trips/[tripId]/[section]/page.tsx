@@ -8,7 +8,6 @@ import Input from '@/components/ui/Input'
 import { ToastContainer } from '@/components/ui/Toast'
 import { ArrowLeft, Plus, Edit2, Trash2, Sparkles, Copy, Paperclip } from 'lucide-react'
 import Link from 'next/link'
-import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 
 const MAX_VIDEO_SIZE_MB = 50
 const MAX_PDF_SIZE_MB = 20
@@ -361,15 +360,19 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
     }
     setUploadingFields(p => ({ ...p, [fieldName]: true }))
     try {
-      const supabase = createSupabaseClient()
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
       const path = `${tripId}/${Date.now()}-${safeName}`
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(path, file, { upsert: true })
-      if (error) throw error
-      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(data.path)
-      setFormData(p => ({ ...p, [storeField]: urlData.publicUrl }))
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('bucket', bucket)
+      fd.append('path', path)
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Erro ao enviar arquivo')
+      }
+      const { publicUrl } = await res.json()
+      setFormData(p => ({ ...p, [storeField]: publicUrl }))
       addToast('Arquivo enviado!', 'success')
     } catch (err: unknown) {
       addToast(err instanceof Error ? err.message : 'Erro ao enviar arquivo', 'error')
