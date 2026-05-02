@@ -92,14 +92,12 @@ export default function ItineraryMap({ items, destination, country, tripId }: It
     }
 
     try {
-      const query = encodeURIComponent(`${location}, ${destination}, ${country}`)
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`,
-        { headers: { 'User-Agent': 'AtticaViagens/1.0 (travel-platform)' } }
-      )
+      const q = `${location}, ${destination}, ${country}`
+      const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`)
+      if (!res.ok) throw new Error(`Geocode API error: ${res.status}`)
       const data = await res.json()
-      if (data && data.length > 0) {
-        const result = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) }
+      if (data.lat !== null && data.lng !== null) {
+        const result = { lat: data.lat, lng: data.lng }
         geocodeCache.current.set(cacheKey, result)
         return result
       }
@@ -114,7 +112,7 @@ export default function ItineraryMap({ items, destination, country, tripId }: It
   // Save coordinates to the database
   const saveCoordinates = useCallback(async (itemId: string, lat: number, lng: number) => {
     try {
-      await fetch(`/api/admin/trips/${tripId}/itinerary/${itemId}`, {
+      await fetch(`/api/trips/${tripId}/itinerary/${itemId}/coordinates`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ latitude: lat, longitude: lng }),
@@ -150,8 +148,8 @@ export default function ItineraryMap({ items, destination, country, tripId }: It
           continue
         }
 
-        // Geocode with rate limiting (respect Nominatim 1 req/sec policy)
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        // Small throttle to avoid overwhelming the server
+        await new Promise(resolve => setTimeout(resolve, 100))
         if (cancelled) break
 
         const coords = await geocode(item.location)
