@@ -34,9 +34,27 @@ export function getLanguageCode(destination: string, country: string): string {
 
 export function speak(text: string, langCode: string): void {
   if (typeof window === 'undefined' || !window.speechSynthesis) return
+  const targetLang = LANG_SPEECH_CODES[langCode] || 'en-US'
   const utterance = new SpeechSynthesisUtterance(text)
-  utterance.lang = LANG_SPEECH_CODES[langCode] || 'en-US'
+  utterance.lang = targetLang
   utterance.rate = 0.8
-  window.speechSynthesis.cancel()
-  window.speechSynthesis.speak(utterance)
+
+  const selectVoiceAndSpeak = () => {
+    const voices = window.speechSynthesis.getVoices()
+    if (voices.length > 0) {
+      const baseLang = targetLang.split('-')[0]
+      const voice =
+        voices.find(v => v.lang === targetLang) ||
+        voices.find(v => v.lang.startsWith(baseLang))
+      if (voice) utterance.voice = voice
+    }
+    window.speechSynthesis.cancel()
+    window.speechSynthesis.speak(utterance)
+  }
+
+  if (window.speechSynthesis.getVoices().length === 0) {
+    window.speechSynthesis.addEventListener('voiceschanged', selectVoiceAndSpeak, { once: true })
+  } else {
+    selectVoiceAndSpeak()
+  }
 }
