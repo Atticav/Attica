@@ -421,11 +421,12 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
     const timer = setTimeout(async () => {
       try {
         const res = await fetch(
-          `https://api.mymemory.translated.net/get?q=${encodeURIComponent(portugueseValue)}&langpair=pt|${encodeURIComponent(langCode)}`
+          `https://translate.googleapis.com/translate_a/single?client=gtx&sl=pt&tl=${encodeURIComponent(langCode)}&dt=t&q=${encodeURIComponent(portugueseValue)}`
         )
         if (!res.ok) return
         const data = await res.json()
-        const translation: unknown = data?.responseData?.translatedText
+        // Response structure: [ [ [translatedText, originalText, ...], ... ], ..., sourceLanguage ]
+        const translation: unknown = data?.[0]?.[0]?.[0]
         if (translation && typeof translation === 'string') {
           setFormData(p => p['local_language'] ? p : { ...p, local_language: translation })
         }
