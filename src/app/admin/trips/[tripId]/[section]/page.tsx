@@ -427,7 +427,7 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
         const data = await res.json()
         const translation: unknown = data?.responseData?.translatedText
         if (translation && typeof translation === 'string') {
-          setFormData(p => ({ ...p, local_language: translation }))
+          setFormData(p => p['local_language'] ? p : { ...p, local_language: translation })
         }
       } catch {
         // silently ignore translation errors
@@ -435,7 +435,6 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
     }, 600)
 
     return () => clearTimeout(timer)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [portugueseValue, section, tripData, modalOpen])
 
   async function handleAiGenerate() {
