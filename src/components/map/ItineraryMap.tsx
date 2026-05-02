@@ -91,18 +91,35 @@ export default function ItineraryMap({ items, destination, country, tripId }: It
       return geocodeCache.current.get(cacheKey) || null
     }
 
+    // Strategy 1: try with just the location (already has city/country in most cases)
+    try {
+      const res = await fetch(`/api/geocode?q=${encodeURIComponent(location)}`)
+      if (res.ok) {
+        const data = await res.json()
+        if (data.lat !== null && data.lng !== null) {
+          const result = { lat: data.lat, lng: data.lng }
+          geocodeCache.current.set(cacheKey, result)
+          return result
+        }
+      }
+    } catch (err) {
+      console.warn('Geocoding (location only) failed for:', location, err)
+    }
+
+    // Strategy 2: fallback - append destination and country
     try {
       const q = `${location}, ${destination}, ${country}`
       const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`)
-      if (!res.ok) throw new Error(`Geocode API error: ${res.status}`)
-      const data = await res.json()
-      if (data.lat !== null && data.lng !== null) {
-        const result = { lat: data.lat, lng: data.lng }
-        geocodeCache.current.set(cacheKey, result)
-        return result
+      if (res.ok) {
+        const data = await res.json()
+        if (data.lat !== null && data.lng !== null) {
+          const result = { lat: data.lat, lng: data.lng }
+          geocodeCache.current.set(cacheKey, result)
+          return result
+        }
       }
     } catch (err) {
-      console.warn('Geocoding failed for:', location, err)
+      console.warn('Geocoding (with destination) failed for:', location, err)
     }
 
     geocodeCache.current.set(cacheKey, null)
