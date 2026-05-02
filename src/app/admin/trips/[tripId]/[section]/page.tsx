@@ -6,8 +6,9 @@ import Card from '@/components/ui/Card'
 import Modal from '@/components/ui/Modal'
 import Input from '@/components/ui/Input'
 import { ToastContainer } from '@/components/ui/Toast'
-import { ArrowLeft, Plus, Edit2, Trash2, Sparkles, Copy, Paperclip } from 'lucide-react'
+import { ArrowLeft, Plus, Edit2, Trash2, Sparkles, Copy, Paperclip, Volume2 } from 'lucide-react'
 import Link from 'next/link'
+import { getLanguageCode, LANG_LABELS, speak } from '@/lib/languageDetection'
 
 const MAX_VIDEO_SIZE_MB = 50
 const MAX_PDF_SIZE_MB = 20
@@ -396,9 +397,9 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
 
   useEffect(() => { loadItems() }, [loadItems])
 
-  // Load trip data for AI generation
+  // Load trip data for AI generation and vocabulary section
   useEffect(() => {
-    if (section === 'itinerary') {
+    if (section === 'itinerary' || section === 'vocabulary') {
       fetch(`/api/admin/trips/${tripId}`)
         .then(res => res.ok ? res.json() : null)
         .then(data => {
@@ -735,6 +736,16 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
       {/* Add/Edit Modal */}
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editItem ? 'Editar item' : `Adicionar em ${sectionLabel}`} size="lg">
         <div className="space-y-4">
+          {section === 'vocabulary' && tripData && (() => {
+            const langCode = getLanguageCode(tripData.destination, tripData.country)
+            return (
+              <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-brand-gold/10 border border-brand-gold/30">
+                <span className="font-inter text-sm text-brand-text">
+                  Idioma do destino: <strong className="text-brand-title">{LANG_LABELS[langCode] || langCode}</strong>
+                </span>
+              </div>
+            )
+          })()}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {formFields.map((field) => {
               if (field.options) {
@@ -808,6 +819,35 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
                       placeholder={field.label}
                       className="w-full rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all resize-y"
                     />
+                  </div>
+                )
+              }
+              if (section === 'vocabulary' && field.name === 'local_language' && tripData) {
+                const langCode = getLanguageCode(tripData.destination, tripData.country)
+                return (
+                  <div key={field.name} className="flex flex-col gap-1.5">
+                    <label className="font-inter text-sm font-medium text-brand-text">{field.label}{field.required && ' *'}</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={formData[field.name] || ''}
+                        onChange={(e) => setFormData(p => ({ ...p, [field.name]: e.target.value }))}
+                        placeholder={field.label}
+                        className="flex-1 rounded-lg border border-brand-border font-outfit text-sm text-brand-text bg-brand-bg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all"
+                      />
+                      <button
+                        type="button"
+                        title="Ouvir pronúncia"
+                        disabled={!formData[field.name]}
+                        onClick={() => {
+                          const text = formData[field.name]
+                          if (text) speak(text, langCode)
+                        }}
+                        className="p-2.5 rounded-lg border border-brand-border text-brand-muted hover:text-brand-gold hover:border-brand-gold/50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        <Volume2 size={16} strokeWidth={1.5} />
+                      </button>
+                    </div>
                   </div>
                 )
               }

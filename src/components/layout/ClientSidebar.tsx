@@ -33,6 +33,7 @@ import type { Trip } from '@/lib/types'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { LANGUAGES } from '@/lib/i18n/translations'
 import type { Translations } from '@/lib/i18n/translations'
+import { getLanguageCode } from '@/lib/languageDetection'
 
 interface NavItem {
   href: string
@@ -40,9 +41,9 @@ interface NavItem {
   icon: React.ReactNode
 }
 
-function buildNavItems(tripId: string, t: Translations): NavItem[] {
+function buildNavItems(tripId: string, t: Translations, langCode?: string): NavItem[] {
   const base = `/dashboard/${tripId}`
-  return [
+  const items: NavItem[] = [
     { href: `/dashboard`, label: t.nav.home, icon: <LayoutDashboard size={18} strokeWidth={1.5} /> },
     { href: `${base}/overview`, label: t.nav.overview, icon: <LayoutList size={18} strokeWidth={1.5} /> },
     { href: `${base}/itinerary`, label: t.nav.itinerary, icon: <Map size={18} strokeWidth={1.5} /> },
@@ -57,9 +58,12 @@ function buildNavItems(tripId: string, t: Translations): NavItem[] {
     { href: `${base}/restaurants`, label: t.nav.restaurants, icon: <UtensilsCrossed size={18} strokeWidth={1.5} /> },
     { href: `${base}/photography`, label: t.nav.photography, icon: <Camera size={18} strokeWidth={1.5} /> },
     { href: `${base}/culture`, label: t.nav.culture, icon: <Globe size={18} strokeWidth={1.5} /> },
-    { href: `${base}/vocabulary`, label: t.nav.vocabulary, icon: <BookOpen size={18} strokeWidth={1.5} /> },
-    { href: `${base}/contract`, label: t.nav.contract, icon: <ScrollText size={18} strokeWidth={1.5} /> },
   ]
+  if (langCode !== 'pt') {
+    items.push({ href: `${base}/vocabulary`, label: t.nav.vocabulary, icon: <BookOpen size={18} strokeWidth={1.5} /> })
+  }
+  items.push({ href: `${base}/contract`, label: t.nav.contract, icon: <ScrollText size={18} strokeWidth={1.5} /> })
+  return items
 }
 
 interface ClientSidebarProps {
@@ -84,10 +88,11 @@ export default function ClientSidebar({
   const effectiveTripId = currentTripId || (pathSegments.length >= 3 && pathSegments[2] ? pathSegments[2] : undefined)
 
   const currentTrip = trips.find((tr) => tr.id === effectiveTripId)
+  const tripLangCode = currentTrip ? getLanguageCode(currentTrip.destination, currentTrip.country) : undefined
   const dashboardOnlyNav: NavItem[] = [
     { href: `/dashboard`, label: t.nav.home, icon: <LayoutDashboard size={18} strokeWidth={1.5} /> },
   ]
-  const navItems = effectiveTripId ? buildNavItems(effectiveTripId, t) : dashboardOnlyNav
+  const navItems = effectiveTripId ? buildNavItems(effectiveTripId, t, tripLangCode) : dashboardOnlyNav
 
   async function handleLogout() {
     const supabase = createClient()
