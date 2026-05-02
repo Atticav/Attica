@@ -8,7 +8,7 @@ import Input from '@/components/ui/Input'
 import { ToastContainer } from '@/components/ui/Toast'
 import { ArrowLeft, Plus, Edit2, Trash2, Sparkles, Copy, Paperclip, Volume2 } from 'lucide-react'
 import Link from 'next/link'
-import { getLanguageCode, LANG_LABELS, speak } from '@/lib/languageDetection'
+import { getLanguageCode, LANG_LABELS, LANG_SPEECH_CODES, speak } from '@/lib/languageDetection'
 
 const MAX_VIDEO_SIZE_MB = 50
 const MAX_PDF_SIZE_MB = 20
@@ -408,6 +408,35 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
         .catch(() => {})
     }
   }, [tripId, section])
+
+  // Auto-translate Portuguese → local language in vocabulary modal (debounced)
+  const portugueseValue = formData['portuguese']
+  useEffect(() => {
+    if (section !== 'vocabulary' || !tripData || !modalOpen) return
+    if (!portugueseValue) return
+    const langCode = getLanguageCode(tripData.destination, tripData.country)
+    if (langCode === 'pt') return
+    if (!(langCode in LANG_SPEECH_CODES)) return
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://api.mymemory.translated.net/get?q=${encodeURIComponent(portugueseValue)}&langpair=pt|${encodeURIComponent(langCode)}`
+        )
+        if (!res.ok) return
+        const data = await res.json()
+        const translation: unknown = data?.responseData?.translatedText
+        if (translation && typeof translation === 'string') {
+          setFormData(p => ({ ...p, local_language: translation }))
+        }
+      } catch {
+        // silently ignore translation errors
+      }
+    }, 600)
+
+    return () => clearTimeout(timer)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [portugueseValue, section, tripData, modalOpen])
 
   async function handleAiGenerate() {
     if (!tripData?.destination || !tripData?.start_date || !tripData?.end_date) {
