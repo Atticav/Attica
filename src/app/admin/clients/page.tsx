@@ -5,7 +5,7 @@ import Card from '@/components/ui/Card'
 import Modal from '@/components/ui/Modal'
 import Input from '@/components/ui/Input'
 import { ToastContainer } from '@/components/ui/Toast'
-import { Users, Plus, Edit2, Eye } from 'lucide-react'
+import { Users, Plus, Edit2, Eye, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 
 interface Client {
@@ -23,6 +23,8 @@ export default function AdminClientsPage() {
   const [editClient, setEditClient] = useState<Client | null>(null)
   const [form, setForm] = useState({ full_name: '', email: '', phone: '' })
   const [saving, setSaving] = useState(false)
+  const [deleteClientId, setDeleteClientId] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
   const [toasts, setToasts] = useState<{ id: string; message: string; type: 'success' | 'error' | 'info' }[]>([])
 
   const addToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -93,6 +95,25 @@ export default function AdminClientsPage() {
     }
   }
 
+  async function handleDeleteClient() {
+    if (!deleteClientId) return
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/admin/clients/${deleteClientId}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Erro ao excluir')
+      }
+      addToast('Cliente excluído', 'success')
+      setDeleteClientId(null)
+      loadClients()
+    } catch (e: unknown) {
+      addToast(e instanceof Error ? e.message : 'Erro ao excluir', 'error')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   return (
     <div>
       <div className="mb-8 flex items-center justify-between">
@@ -155,6 +176,13 @@ export default function AdminClientsPage() {
                         >
                           <Edit2 size={16} strokeWidth={1.5} />
                         </button>
+                        <button
+                          onClick={() => setDeleteClientId(client.id)}
+                          className="p-1.5 text-brand-muted hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                          title="Excluir"
+                        >
+                          <Trash2 size={16} strokeWidth={1.5} />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -209,6 +237,31 @@ export default function AdminClientsPage() {
               {saving ? 'Salvando...' : 'Salvar'}
             </button>
           </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={!!deleteClientId}
+        onClose={() => setDeleteClientId(null)}
+        title="Excluir cliente"
+      >
+        <p className="font-outfit text-brand-text mb-6">
+          Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setDeleteClientId(null)}
+            className="flex-1 px-4 py-2.5 border border-brand-border text-brand-text rounded-lg font-inter text-sm hover:bg-brand-bg transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleDeleteClient}
+            disabled={deleting}
+            className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg font-inter text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-60"
+          >
+            {deleting ? 'Excluindo...' : 'Excluir'}
+          </button>
         </div>
       </Modal>
 

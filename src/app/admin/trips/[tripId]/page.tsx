@@ -63,6 +63,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
     show_weather: true,
     show_currency: true,
     show_map_button: true,
+    show_vocabulary: true,
   })
   const [savingWidgets, setSavingWidgets] = useState(false)
   const [uploadingCover, setUploadingCover] = useState(false)
@@ -103,6 +104,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
               show_weather: wData.show_weather ?? true,
               show_currency: wData.show_currency ?? true,
               show_map_button: wData.show_map_button ?? true,
+              show_vocabulary: wData.show_vocabulary ?? true,
             })
           }
         }
@@ -371,6 +373,15 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
               />
               <span className="font-inter text-sm text-brand-text">Exibir botão de mapa</span>
             </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={widgetForm.show_vocabulary}
+                onChange={(e) => setWidgetForm(p => ({ ...p, show_vocabulary: e.target.checked }))}
+                className="w-4 h-4 rounded border-brand-border text-brand-gold focus:ring-brand-gold"
+              />
+              <span className="font-inter text-sm text-brand-text">Exibir Vocabulário</span>
+            </label>
           </div>
         </div>
       </Card>
@@ -379,19 +390,25 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
       <div>
         <h2 className="font-cormorant text-2xl font-semibold text-brand-title mb-4">Conteúdo da viagem</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-          {sections.map(({ icon: Icon, label, slug }) => (
-            <Link key={slug} href={`/admin/trips/${tripId}/${slug}`}>
-              <Card
-                padding="sm"
-                className="flex flex-col items-center text-center hover:shadow-card hover:border-brand-gold/30 transition-all cursor-pointer"
-              >
-                <div className="w-12 h-12 rounded-full bg-brand-bg-secondary flex items-center justify-center mb-3 mt-1">
-                  <Icon size={22} strokeWidth={1.3} className="text-brand-gold" />
-                </div>
-                <p className="font-inter text-sm font-medium text-brand-title">{label}</p>
-              </Card>
-            </Link>
-          ))}
+          {sections.map(({ icon: Icon, label, slug }) => {
+            const isDisabled = slug === 'vocabulary' && !widgetForm.show_vocabulary
+            return (
+              <Link key={slug} href={`/admin/trips/${tripId}/${slug}`}>
+                <Card
+                  padding="sm"
+                  className={`flex flex-col items-center text-center hover:shadow-card hover:border-brand-gold/30 transition-all cursor-pointer${isDisabled ? ' opacity-50' : ''}`}
+                >
+                  <div className="w-12 h-12 rounded-full bg-brand-bg-secondary flex items-center justify-center mb-3 mt-1">
+                    <Icon size={22} strokeWidth={1.3} className="text-brand-gold" />
+                  </div>
+                  <p className="font-inter text-sm font-medium text-brand-title">{label}</p>
+                  {isDisabled && (
+                    <p className="font-inter text-xs text-brand-muted mt-0.5">Desabilitado</p>
+                  )}
+                </Card>
+              </Link>
+            )
+          })}
         </div>
       </div>
 

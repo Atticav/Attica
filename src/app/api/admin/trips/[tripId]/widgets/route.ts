@@ -40,7 +40,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ trip
   const { tripId } = await params
   const body = await request.json()
 
-  const { travel_style, ideal_duration, custom_notes, show_weather, show_currency, show_map_button } = body
+  const { travel_style, ideal_duration, custom_notes, show_weather, show_currency, show_map_button, show_vocabulary } = body
 
   const { data, error } = await supabase
     .from('trip_widgets')
@@ -53,6 +53,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ trip
         show_weather: show_weather ?? true,
         show_currency: show_currency ?? true,
         show_map_button: show_map_button ?? true,
+        show_vocabulary: show_vocabulary ?? true,
       },
       { onConflict: 'trip_id' }
     )

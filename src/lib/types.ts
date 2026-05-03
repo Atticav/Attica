@@ -30,6 +30,7 @@ export interface Trip {
   updated_at: string
   // relações
   profile?: Profile
+  trip_widgets?: { show_vocabulary: boolean | null } | null
 }
 
 // ===== ITINERÁRIO =====
