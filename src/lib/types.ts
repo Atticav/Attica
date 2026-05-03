@@ -438,3 +438,14 @@ export interface PlannerTask {
   profile?: { id: string; full_name: string | null; email: string } | null
   trip?: { id: string; title: string } | null
 }
+
+// ===== CHAT =====
+export interface TripMessage {
+  id: string
+  trip_id: string
+  sender_id: string
+  sender_role: 'admin' | 'client'
+  content: string
+  read_at: string | null
+  created_at: string
+}

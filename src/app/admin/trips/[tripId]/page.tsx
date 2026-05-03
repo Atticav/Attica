@@ -7,7 +7,7 @@ import Input from '@/components/ui/Input'
 import Modal from '@/components/ui/Modal'
 import { ToastContainer } from '@/components/ui/Toast'
 import {
-  ArrowLeft, Save, Trash2,
+  ArrowLeft, Save, Trash2, MessageCircle,
   Map, DollarSign, FileText, Luggage, CheckSquare, Compass,
   PlayCircle, ImageIcon, UtensilsCrossed, Camera, Globe, BookOpen, ScrollText
 } from 'lucide-react'
@@ -223,6 +223,13 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
             )}
           </div>
           <div className="flex gap-3">
+            <Link
+              href={`/admin/trips/${tripId}/chat`}
+              className="flex items-center gap-2 px-4 py-2.5 border border-brand-border text-brand-text rounded-lg font-inter text-sm hover:bg-brand-bg transition-colors"
+            >
+              <MessageCircle size={16} strokeWidth={1.5} />
+              Chat
+            </Link>
             <button
               onClick={() => setDeleteModalOpen(true)}
               className="flex items-center gap-2 px-4 py-2.5 border border-red-200 text-red-600 rounded-lg font-inter text-sm hover:bg-red-50 transition-colors"
