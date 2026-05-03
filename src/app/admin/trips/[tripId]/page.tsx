@@ -396,7 +396,10 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
               <Link key={slug} href={`/admin/trips/${tripId}/${slug}`}>
                 <Card
                   padding="sm"
-                  className={`flex flex-col items-center text-center hover:shadow-card hover:border-brand-gold/30 transition-all cursor-pointer${isDisabled ? ' opacity-50' : ''}`}
+                  className={[
+                    'flex flex-col items-center text-center hover:shadow-card hover:border-brand-gold/30 transition-all cursor-pointer',
+                    isDisabled ? 'opacity-50' : '',
+                  ].filter(Boolean).join(' ')}
                 >
                   <div className="w-12 h-12 rounded-full bg-brand-bg-secondary flex items-center justify-center mb-3 mt-1">
                     <Icon size={22} strokeWidth={1.3} className="text-brand-gold" />
