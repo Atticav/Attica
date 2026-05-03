@@ -41,7 +41,7 @@ interface NavItem {
   icon: React.ReactNode
 }
 
-function buildNavItems(tripId: string, t: Translations, langCode?: string): NavItem[] {
+function buildNavItems(tripId: string, t: Translations, langCode?: string, showVocabulary?: boolean | null): NavItem[] {
   const base = `/dashboard/${tripId}`
   const items: NavItem[] = [
     { href: `/dashboard`, label: t.nav.home, icon: <LayoutDashboard size={18} strokeWidth={1.5} /> },
@@ -59,7 +59,7 @@ function buildNavItems(tripId: string, t: Translations, langCode?: string): NavI
     { href: `${base}/photography`, label: t.nav.photography, icon: <Camera size={18} strokeWidth={1.5} /> },
     { href: `${base}/culture`, label: t.nav.culture, icon: <Globe size={18} strokeWidth={1.5} /> },
   ]
-  if (langCode !== 'pt') {
+  if (langCode !== 'pt' && (showVocabulary ?? true)) {
     items.push({ href: `${base}/vocabulary`, label: t.nav.vocabulary, icon: <BookOpen size={18} strokeWidth={1.5} /> })
   }
   items.push({ href: `${base}/contract`, label: t.nav.contract, icon: <ScrollText size={18} strokeWidth={1.5} /> })
@@ -89,10 +89,11 @@ export default function ClientSidebar({
 
   const currentTrip = trips.find((tr) => tr.id === effectiveTripId)
   const tripLangCode = currentTrip ? getLanguageCode(currentTrip.destination, currentTrip.country) : undefined
+  const tripShowVocabulary = currentTrip?.trip_widgets?.show_vocabulary ?? null
   const dashboardOnlyNav: NavItem[] = [
     { href: `/dashboard`, label: t.nav.home, icon: <LayoutDashboard size={18} strokeWidth={1.5} /> },
   ]
-  const navItems = effectiveTripId ? buildNavItems(effectiveTripId, t, tripLangCode) : dashboardOnlyNav
+  const navItems = effectiveTripId ? buildNavItems(effectiveTripId, t, tripLangCode, tripShowVocabulary) : dashboardOnlyNav
 
   async function handleLogout() {
     const supabase = createClient()

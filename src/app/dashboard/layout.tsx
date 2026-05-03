@@ -22,7 +22,7 @@ export default async function DashboardLayout({
   const [{ data: trips }, { data: profile }] = await Promise.all([
     supabase
       .from('trips')
-      .select('*')
+      .select('*, trip_widgets(show_vocabulary)')
       .eq('client_id', user.id)
       .order('created_at', { ascending: false }),
     supabase

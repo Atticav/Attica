@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { BookOpen, Volume2, Sparkles, Headphones, ExternalLink } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
@@ -98,6 +98,7 @@ function SpeakButton({ text, langCode }: { text: string; langCode: string }) {
 
 export default function VocabularyPage() {
   const { tripId } = useParams<{ tripId: string }>()
+  const router = useRouter()
   const { t } = useLanguage()
   const [extraWords, setExtraWords] = useState<Vocabulary[]>([])
   const [langCode, setLangCode] = useState<string>('en')
@@ -107,19 +108,24 @@ export default function VocabularyPage() {
     setLoading(true)
     const supabase = createClient()
 
-    const [tripResult, vocabResult] = await Promise.all([
+    const [tripResult, widgetResult, vocabResult] = await Promise.all([
       supabase.from('trips').select('destination, country').eq('id', tripId).single(),
+      supabase.from('trip_widgets').select('show_vocabulary').eq('trip_id', tripId).maybeSingle(),
       supabase.from('vocabulary').select('*').eq('trip_id', tripId).order('order_index', { ascending: true }),
     ])
 
     if (tripResult.data) {
       setLangCode(getLanguageCode(tripResult.data.destination, tripResult.data.country))
     }
+    if (widgetResult.data && widgetResult.data.show_vocabulary === false) {
+      router.replace(`/dashboard/${tripId}/overview`)
+      return
+    }
     if (!vocabResult.error && vocabResult.data) {
       setExtraWords(vocabResult.data)
     }
     setLoading(false)
-  }, [tripId])
+  }, [tripId, router])
 
   useEffect(() => {
     loadData()

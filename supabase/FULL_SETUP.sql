@@ -831,6 +831,7 @@ CREATE TABLE IF NOT EXISTS public.trip_widgets (
   show_weather     BOOLEAN NOT NULL DEFAULT TRUE,
   show_currency    BOOLEAN NOT NULL DEFAULT TRUE,
   show_map_button  BOOLEAN NOT NULL DEFAULT TRUE,
+  show_vocabulary  BOOLEAN NOT NULL DEFAULT TRUE,
   created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
