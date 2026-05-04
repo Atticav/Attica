@@ -47,8 +47,9 @@ export async function POST(request: Request) {
   const adminClient = getAdminClient()
 
   // 1. Create user in Supabase Auth
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://atticaviagens.com.br'
   const { data: authData, error: authError } = await adminClient.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://atticaviagens.vercel.app'}/update-password`,
+    redirectTo: `${siteUrl}/auth/callback?next=/update-password`,
     data: { full_name },
   })
 
