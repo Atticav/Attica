@@ -313,11 +313,6 @@ function getFormFields(section: string): { name: string; label: string; type?: s
 
 const TEMPLATE_SECTIONS = ['packing', 'checklist', 'strategic', 'guide', 'photography', 'vocabulary']
 
-// Required fields missing from template tables that must be added on insert
-const TEMPLATE_SECTION_DEFAULTS: Record<string, Record<string, unknown>> = {
-  packing: { is_packed: false },
-  checklist: { is_completed: false },
-}
 
 function getTableName(section: string): string {
   const tableMap: Record<string, string> = {
@@ -480,34 +475,27 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
   const formFields = getFormFields(section)
 
   async function applyTemplate() {
-    const templateTable = `template_${section}`
-    const supabase = (await import('@/lib/supabase/client')).createClient()
+    try {
+      const res = await fetch(`/api/admin/trips/${tripId}/apply-template`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section }),
+      })
 
-    const { data: templateItems, error: fetchError } = await supabase
-      .from(templateTable)
-      .select('*')
-      .order('order_index', { ascending: true })
+      const json = await res.json()
 
-    if (fetchError || !templateItems || templateItems.length === 0) {
-      addToast('Nenhum template encontrado para esta seção', 'info')
-      return
-    }
+      if (!res.ok) {
+        const msg = json?.error ?? 'Erro desconhecido ao aplicar template'
+        console.error('Template apply error:', msg)
+        addToast(`Erro ao aplicar template: ${msg}`, 'error')
+        return
+      }
 
-    // Section-specific defaults for fields not present in templates
-    const sectionTable = getTableName(section)
-    const defaults = TEMPLATE_SECTION_DEFAULTS[section] || {}
-    const itemsToInsert = templateItems.map(({ id: _id, created_at: _ca, updated_at: _ua, ...rest }) => {
-      return { ...rest, ...defaults, trip_id: tripId }
-    })
-
-    const { error: insertError } = await supabase.from(sectionTable).insert(itemsToInsert)
-
-    if (insertError) {
-      console.error('Template insert error:', insertError)
-      addToast('Erro ao aplicar template', 'error')
-    } else {
-      addToast(`✅ ${itemsToInsert.length} itens do template aplicados!`, 'success')
+      addToast(`✅ ${json.count} itens do template aplicados!`, 'success')
       loadItems()
+    } catch (err) {
+      console.error('Template apply exception:', err)
+      addToast('Erro ao aplicar template: falha de rede ou servidor', 'error')
     }
   }
 
