@@ -313,6 +313,12 @@ function getFormFields(section: string): { name: string; label: string; type?: s
 
 const TEMPLATE_SECTIONS = ['packing', 'checklist', 'strategic', 'guide', 'photography', 'vocabulary']
 
+// Required fields missing from template tables that must be added on insert
+const TEMPLATE_SECTION_DEFAULTS: Record<string, Record<string, unknown>> = {
+  packing: { is_packed: false },
+  checklist: { is_completed: false },
+}
+
 function getTableName(section: string): string {
   const tableMap: Record<string, string> = {
     itinerary: 'itinerary_items',
@@ -487,14 +493,17 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
       return
     }
 
+    // Section-specific defaults for fields not present in templates
     const sectionTable = getTableName(section)
+    const defaults = TEMPLATE_SECTION_DEFAULTS[section] || {}
     const itemsToInsert = templateItems.map(({ id: _id, created_at: _ca, updated_at: _ua, ...rest }) => {
-      return { ...rest, trip_id: tripId }
+      return { ...rest, ...defaults, trip_id: tripId }
     })
 
     const { error: insertError } = await supabase.from(sectionTable).insert(itemsToInsert)
 
     if (insertError) {
+      console.error('Template insert error:', insertError)
       addToast('Erro ao aplicar template', 'error')
     } else {
       addToast(`✅ ${itemsToInsert.length} itens do template aplicados!`, 'success')
