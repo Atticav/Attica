@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
+  const token_hash = searchParams.get('token_hash')
   const code = searchParams.get('code')
   const type = searchParams.get('type')
   const next = searchParams.get('next') ?? (type === 'invite' || type === 'recovery' ? '/update-password' : '/dashboard')
@@ -15,24 +16,24 @@ export async function GET(request: Request) {
     return `${origin}${path}`
   }
 
+  // invite/recovery flow via token_hash
+  if (token_hash && (type === 'invite' || type === 'recovery')) {
+    const supabase = await createClient()
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash,
+      type: type as 'invite' | 'recovery',
+    })
+    if (!error) {
+      return NextResponse.redirect(getRedirectUrl(request, origin, next))
+    }
+  }
+
+  // OAuth PKCE flow via code
   if (code) {
     const supabase = await createClient()
-
-    // If type is invite or recovery, the token is a hash — use verifyOtp
-    if (type === 'invite' || type === 'recovery') {
-      const { error } = await supabase.auth.verifyOtp({
-        token_hash: code,
-        type: type as 'invite' | 'recovery',
-      })
-      if (!error) {
-        return NextResponse.redirect(getRedirectUrl(request, origin, next))
-      }
-    } else {
-      // OAuth flow — exchange code for session
-      const { error } = await supabase.auth.exchangeCodeForSession(code)
-      if (!error) {
-        return NextResponse.redirect(getRedirectUrl(request, origin, next))
-      }
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error) {
+      return NextResponse.redirect(getRedirectUrl(request, origin, next))
     }
   }
 
