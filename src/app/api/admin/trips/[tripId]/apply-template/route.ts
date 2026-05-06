@@ -42,19 +42,32 @@ function normalizeItem(
 
   switch (section) {
     case 'packing': {
-      // category: NOT NULL, CHECK constraint
+      // Build an explicit whitelist-only object so that legacy template columns
+      // like 'name' (instead of 'item_name') never reach the insert payload.
+      const rawName =
+        (item.item_name as string | null | undefined) ||
+        (item.name as string | null | undefined)
       const cat = item.category as string | null | undefined
-      item.category =
-        cat && PACKING_VALID_CATEGORIES.has(cat) ? cat : 'other'
-      // quantity: NOT NULL DEFAULT 1
-      if (!item.quantity) item.quantity = 1
-      // is_essential: NOT NULL DEFAULT FALSE
-      if (item.is_essential === null || item.is_essential === undefined) {
-        item.is_essential = false
+      return {
+        trip_id: tripId,
+        item_name:
+          typeof rawName === 'string' && rawName.trim()
+            ? rawName.trim()
+            : 'Item sem nome',
+        category:
+          cat && PACKING_VALID_CATEGORIES.has(cat) ? cat : 'other',
+        quantity:
+          typeof item.quantity === 'number' && Number.isFinite(item.quantity)
+            ? item.quantity
+            : 1,
+        is_packed: false,
+        is_essential: Boolean(item.is_essential),
+        notes: typeof item.notes === 'string' ? item.notes : null,
+        order_index:
+          typeof item.order_index === 'number' && Number.isFinite(item.order_index)
+            ? item.order_index
+            : 0,
       }
-      // is_packed: NOT NULL DEFAULT FALSE (column not in template)
-      item.is_packed = false
-      break
     }
 
     case 'checklist': {
