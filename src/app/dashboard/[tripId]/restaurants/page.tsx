@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import {
   UtensilsCrossed,
   MapPin,
@@ -57,6 +57,7 @@ function StarRating({ rating }: { rating: number | null }) {
 
 export default function RestaurantsPage() {
   const { tripId } = useParams<{ tripId: string }>()
+  const router = useRouter()
   const { t } = useLanguage()
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
   const [loading, setLoading] = useState(true)
@@ -64,15 +65,19 @@ export default function RestaurantsPage() {
   const loadData = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
-    const { data, error } = await supabase
-      .from('restaurants')
-      .select('*')
-      .eq('trip_id', tripId)
-      .order('order_index', { ascending: true })
 
-    if (!error && data) setRestaurants(data)
+    const [widgetResult, restaurantResult] = await Promise.all([
+      supabase.from('trip_widgets').select('show_restaurantes').eq('trip_id', tripId).maybeSingle(),
+      supabase.from('restaurants').select('*').eq('trip_id', tripId).order('order_index', { ascending: true }),
+    ])
+
+    if (widgetResult.data && widgetResult.data.show_restaurantes === false) {
+      router.replace(`/dashboard/${tripId}/overview`)
+      return
+    }
+    if (!restaurantResult.error && restaurantResult.data) setRestaurants(restaurantResult.data)
     setLoading(false)
-  }, [tripId])
+  }, [tripId, router])
 
   useEffect(() => {
     loadData()

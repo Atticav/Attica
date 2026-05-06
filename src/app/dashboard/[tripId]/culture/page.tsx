@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { Landmark, Star } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
@@ -12,6 +12,7 @@ import type { CulturalInfo } from '@/lib/types'
 
 export default function CulturePage() {
   const { tripId } = useParams<{ tripId: string }>()
+  const router = useRouter()
   const { t } = useLanguage()
   const [items, setItems] = useState<CulturalInfo[]>([])
   const [loading, setLoading] = useState(true)
@@ -19,15 +20,19 @@ export default function CulturePage() {
   const loadData = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
-    const { data, error } = await supabase
-      .from('cultural_info')
-      .select('*')
-      .eq('trip_id', tripId)
-      .order('order_index', { ascending: true })
 
-    if (!error && data) setItems(data)
+    const [widgetResult, cultureResult] = await Promise.all([
+      supabase.from('trip_widgets').select('show_cultura').eq('trip_id', tripId).maybeSingle(),
+      supabase.from('cultural_info').select('*').eq('trip_id', tripId).order('order_index', { ascending: true }),
+    ])
+
+    if (widgetResult.data && widgetResult.data.show_cultura === false) {
+      router.replace(`/dashboard/${tripId}/overview`)
+      return
+    }
+    if (!cultureResult.error && cultureResult.data) setItems(cultureResult.data)
     setLoading(false)
-  }, [tripId])
+  }, [tripId, router])
 
   useEffect(() => {
     loadData()

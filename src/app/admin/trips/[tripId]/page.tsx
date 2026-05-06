@@ -64,6 +64,8 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
     show_currency: true,
     show_map_button: true,
     show_vocabulary: true,
+    show_cultura: true,
+    show_restaurantes: true,
   })
   const [savingWidgets, setSavingWidgets] = useState(false)
   const [uploadingCover, setUploadingCover] = useState(false)
@@ -105,6 +107,8 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
               show_currency: wData.show_currency ?? true,
               show_map_button: wData.show_map_button ?? true,
               show_vocabulary: wData.show_vocabulary ?? true,
+              show_cultura: wData.show_cultura ?? true,
+              show_restaurantes: wData.show_restaurantes ?? true,
             })
           }
         }
@@ -322,11 +326,12 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
             >
               <option value="">Selecionar...</option>
               <option value="Aventura">Aventura</option>
-              <option value="Luxo">Luxo</option>
-              <option value="Romântico">Romântico</option>
-              <option value="Família">Família</option>
+              <option value="Cruzeiro">Cruzeiro</option>
               <option value="Descanso">Descanso</option>
               <option value="Equilíbrio">Equilíbrio</option>
+              <option value="Família">Família</option>
+              <option value="Luxo">Luxo</option>
+              <option value="Romântico">Romântico</option>
             </select>
           </div>
           <Input
@@ -382,6 +387,24 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
               />
               <span className="font-inter text-sm text-brand-text">Exibir Vocabulário</span>
             </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={widgetForm.show_cultura}
+                onChange={(e) => setWidgetForm(p => ({ ...p, show_cultura: e.target.checked }))}
+                className="w-4 h-4 rounded border-brand-border text-brand-gold focus:ring-brand-gold"
+              />
+              <span className="font-inter text-sm text-brand-text">Exibir Cultura</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={widgetForm.show_restaurantes}
+                onChange={(e) => setWidgetForm(p => ({ ...p, show_restaurantes: e.target.checked }))}
+                className="w-4 h-4 rounded border-brand-border text-brand-gold focus:ring-brand-gold"
+              />
+              <span className="font-inter text-sm text-brand-text">Exibir Restaurantes</span>
+            </label>
           </div>
         </div>
       </Card>
@@ -391,7 +414,10 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
         <h2 className="font-cormorant text-2xl font-semibold text-brand-title mb-4">Conteúdo da viagem</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {sections.map(({ icon: Icon, label, slug }) => {
-            const isDisabled = slug === 'vocabulary' && !widgetForm.show_vocabulary
+            const isDisabled =
+              (slug === 'vocabulary' && !widgetForm.show_vocabulary) ||
+              (slug === 'culture' && !widgetForm.show_cultura) ||
+              (slug === 'restaurants' && !widgetForm.show_restaurantes)
             return (
               <Link key={slug} href={`/admin/trips/${tripId}/${slug}`}>
                 <Card

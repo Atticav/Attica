@@ -79,9 +79,13 @@ export default async function OverviewPage({ params }: { params: Promise<{ tripI
   const styleVariants: Record<string, 'gold' | 'success' | 'warning' | 'error' | 'brown' | 'neutral'> = {
     'Cultural': 'gold',
     'Aventura': 'success',
-    'Gastronômico': 'warning',
-    'Relaxamento': 'brown',
+    'Cruzeiro': 'neutral',
+    'Descanso': 'brown',
+    'Equilíbrio': 'brown',
     'Família': 'neutral',
+    'Gastronômico': 'warning',
+    'Luxo': 'gold',
+    'Relaxamento': 'brown',
     'Romântico': 'error',
     'Business': 'neutral',
   }
