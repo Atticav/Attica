@@ -42,6 +42,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ trip
 
   const { travel_style, ideal_duration, custom_notes, show_weather, show_currency, show_map_button, show_vocabulary } = body
   const payload = {
+    trip_id: tripId,
     travel_style: travel_style || null,
     ideal_duration: ideal_duration || null,
     custom_notes: custom_notes || null,
@@ -51,29 +52,33 @@ export async function PUT(request: Request, { params }: { params: Promise<{ trip
     show_vocabulary: show_vocabulary ?? true,
   }
 
-  const { data: existing, error: existingError } = await supabase
+  const { data, error } = await supabase
     .from('trip_widgets')
-    .select('id')
-    .eq('trip_id', tripId)
-    .maybeSingle()
-
-  if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 })
-
-  const query = existing
-    ? supabase
-      .from('trip_widgets')
-      .update(payload)
-      .eq('id', existing.id)
-    : supabase
-      .from('trip_widgets')
-      .insert({
-        trip_id: tripId,
-        ...payload,
-      })
-
-  const { data, error } = await query
+    .upsert(payload, { onConflict: 'trip_id' })
     .select()
     .single()
+
+  if (error && /no unique or exclusion constraint matching the ON CONFLICT specification/i.test(error.message)) {
+    const { trip_id: _tripId, ...updatePayload } = payload
+    const { data: fallbackData, error: fallbackError } = await supabase
+      .from('trip_widgets')
+      .update(updatePayload)
+      .eq('trip_id', tripId)
+      .select()
+      .maybeSingle()
+
+    if (fallbackError) return NextResponse.json({ error: fallbackError.message }, { status: 500 })
+    if (fallbackData) return NextResponse.json(fallbackData)
+
+    const { data: insertData, error: insertError } = await supabase
+      .from('trip_widgets')
+      .insert(payload)
+      .select()
+      .single()
+
+    if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 })
+    return NextResponse.json(insertData)
+  }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)
