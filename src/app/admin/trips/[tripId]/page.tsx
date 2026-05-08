@@ -126,7 +126,10 @@ export default function TripDetailPage({ params }: { params: Promise<{ tripId: s
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(widgetForm),
       })
-      if (!res.ok) throw new Error('Erro ao salvar widgets')
+      if (!res.ok) {
+        const err = await res.json().catch(() => null)
+        throw new Error(err?.error || 'Erro ao salvar widgets')
+      }
       addToast('Widgets salvos!', 'success')
     } catch (e: unknown) {
       addToast(e instanceof Error ? e.message : 'Erro ao salvar widgets', 'error')

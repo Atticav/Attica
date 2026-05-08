@@ -41,22 +41,37 @@ export async function PUT(request: Request, { params }: { params: Promise<{ trip
   const body = await request.json()
 
   const { travel_style, ideal_duration, custom_notes, show_weather, show_currency, show_map_button, show_vocabulary } = body
+  const payload = {
+    travel_style: travel_style || null,
+    ideal_duration: ideal_duration || null,
+    custom_notes: custom_notes || null,
+    show_weather: show_weather ?? true,
+    show_currency: show_currency ?? true,
+    show_map_button: show_map_button ?? true,
+    show_vocabulary: show_vocabulary ?? true,
+  }
 
-  const { data, error } = await supabase
+  const { data: existing, error: existingError } = await supabase
     .from('trip_widgets')
-    .upsert(
-      {
+    .select('id')
+    .eq('trip_id', tripId)
+    .maybeSingle()
+
+  if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 })
+
+  const query = existing
+    ? supabase
+      .from('trip_widgets')
+      .update(payload)
+      .eq('id', existing.id)
+    : supabase
+      .from('trip_widgets')
+      .insert({
         trip_id: tripId,
-        travel_style: travel_style || null,
-        ideal_duration: ideal_duration || null,
-        custom_notes: custom_notes || null,
-        show_weather: show_weather ?? true,
-        show_currency: show_currency ?? true,
-        show_map_button: show_map_button ?? true,
-        show_vocabulary: show_vocabulary ?? true,
-      },
-      { onConflict: 'trip_id' }
-    )
+        ...payload,
+      })
+
+  const { data, error } = await query
     .select()
     .single()
 
