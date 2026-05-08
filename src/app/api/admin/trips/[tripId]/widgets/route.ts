@@ -58,8 +58,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ trip
     .select()
     .single()
 
-  if (error && /no unique or exclusion constraint matching the ON CONFLICT specification/i.test(error.message)) {
-    const { trip_id: _tripId, ...updatePayload } = payload
+  if (
+    error && (
+      error.code === '42P10' ||
+      /no unique or exclusion constraint matching the ON CONFLICT specification/i.test(error.message)
+    )
+  ) {
+    const { trip_id: _ignoredTripId, ...updatePayload } = payload
     const { data: fallbackData, error: fallbackError } = await supabase
       .from('trip_widgets')
       .update(updatePayload)
