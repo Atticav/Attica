@@ -58,21 +58,29 @@ export async function PUT(request: Request, { params }: { params: Promise<{ trip
     .select()
     .single()
 
-  if (
-    error && (
-      error.code === '42P10' ||
-      /no unique or exclusion constraint matching the ON CONFLICT specification/i.test(error.message)
-    )
-  ) {
-    const { trip_id: _ignoredTripId, ...updatePayload } = payload
-    const { data: fallbackData, error: fallbackError } = await supabase
+  if (error && error.code === '42P10') {
+    const updatePayload = {
+      travel_style: payload.travel_style,
+      ideal_duration: payload.ideal_duration,
+      custom_notes: payload.custom_notes,
+      show_weather: payload.show_weather,
+      show_currency: payload.show_currency,
+      show_map_button: payload.show_map_button,
+      show_vocabulary: payload.show_vocabulary,
+    }
+    const { error: fallbackUpdateError } = await supabase
       .from('trip_widgets')
       .update(updatePayload)
       .eq('trip_id', tripId)
-      .select()
+    if (fallbackUpdateError) return NextResponse.json({ error: fallbackUpdateError.message }, { status: 500 })
+
+    const { data: fallbackData, error: fallbackSelectError } = await supabase
+      .from('trip_widgets')
+      .select('*')
+      .eq('trip_id', tripId)
       .maybeSingle()
 
-    if (fallbackError) return NextResponse.json({ error: fallbackError.message }, { status: 500 })
+    if (fallbackSelectError) return NextResponse.json({ error: fallbackSelectError.message }, { status: 500 })
     if (fallbackData) return NextResponse.json(fallbackData)
 
     const { data: insertData, error: insertError } = await supabase
