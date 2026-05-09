@@ -14,6 +14,7 @@ interface TripChatProps {
 }
 
 const CHAT_POSITION_STORAGE_KEY = 'attica-chat-position'
+const CHAT_PANEL_WIDTH_CLASS = 'w-[min(24rem,calc(100vw-2rem))]'
 
 export default function TripChat({ tripId, userId, userRole, embedded = false }: TripChatProps) {
   const [open, setOpen] = useState(embedded)
@@ -142,6 +143,11 @@ export default function TripChat({ tripId, userId, userRole, embedded = false }:
     })
   }
 
+  const isRight = chatPosition === 'right'
+  const wrapperPositionClass = isRight ? 'right-4 sm:right-6 items-end' : 'left-4 sm:left-6 items-start'
+  const panelOriginClass = isRight ? 'origin-bottom-right' : 'origin-bottom-left'
+  const controlsDirectionClass = isRight ? 'flex-row' : 'flex-row-reverse'
+
   const chatBody = (
     <>
       {/* Header */}
@@ -238,14 +244,15 @@ export default function TripChat({ tripId, userId, userRole, embedded = false }:
     <div
       className={cn(
         'fixed bottom-6 z-50 flex flex-col gap-3',
-        chatPosition === 'right' ? 'right-4 sm:right-6 items-end' : 'left-4 sm:left-6 items-start'
+        wrapperPositionClass
       )}
     >
       {open && (
         <div
           className={cn(
-            'w-[min(24rem,calc(100vw-2rem))] bg-white rounded-2xl shadow-2xl border border-brand-border flex flex-col overflow-hidden',
-            chatPosition === 'right' ? 'origin-bottom-right' : 'origin-bottom-left'
+            CHAT_PANEL_WIDTH_CLASS,
+            'bg-white rounded-2xl shadow-2xl border border-brand-border flex flex-col overflow-hidden',
+            panelOriginClass
           )}
           style={{ height: '480px' }}
         >
@@ -254,7 +261,7 @@ export default function TripChat({ tripId, userId, userRole, embedded = false }:
       )}
 
       {/* Floating button */}
-      <div className={cn('relative flex items-center gap-2', chatPosition === 'right' ? 'flex-row' : 'flex-row-reverse')}>
+      <div className={cn('relative flex items-center gap-2', controlsDirectionClass)}>
         <button
           onClick={togglePosition}
           className="w-9 h-9 rounded-full border border-brand-border bg-white text-brand-muted hover:text-brand-gold hover:border-brand-gold transition-colors flex items-center justify-center shadow-sm"

@@ -8,6 +8,8 @@ import { ToastContainer } from '@/components/ui/Toast'
 import { Plus, Edit2, Trash2, Luggage, CheckSquare, Link2, Clapperboard, Camera, BookOpen, Paperclip } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
+const PG_UNDEFINED_COLUMN_ERROR = '42703'
+
 const OPTION_LABELS: Record<string, string> = {
   clothing: 'Roupa',
   documents: 'Documento',
@@ -274,21 +276,27 @@ export default function TemplatesPage() {
         else payload[f.name] = val
       })
 
-      const legacyPackingPayload =
-        activeSection.key === 'packing' && payload.item_name !== undefined
-          ? (() => {
-              const p: Record<string, unknown> = { ...payload, name: payload.item_name }
-              delete p.item_name
-              return p
-            })()
-          : null
+      const getLegacyPackingPayload = () => {
+        if (activeSection.key !== 'packing' || payload.item_name === undefined) return null
+        const { item_name, ...rest } = payload
+        return { ...rest, name: item_name }
+      }
+
+      const legacyPackingPayload = getLegacyPackingPayload()
+
+      const isPackingColumnMismatch = (err: { code?: string; message?: string; details?: string; hint?: string } | null) => {
+        if (!err || activeSection.key !== 'packing') return false
+        if (err.code !== PG_UNDEFINED_COLUMN_ERROR) return false
+        const fullMessage = [err.message, err.details, err.hint].filter(Boolean).join(' ').toLowerCase()
+        return fullMessage.includes('item_name')
+      }
 
       if (editItem) {
         let { error } = await supabase
           .from(activeSection.table)
           .update(payload)
           .eq('id', editItem.id)
-        if (error && legacyPackingPayload && String(error.message).toLowerCase().includes('item_name')) {
+        if (error && legacyPackingPayload && isPackingColumnMismatch(error)) {
           const retry = await supabase
             .from(activeSection.table)
             .update(legacyPackingPayload)
@@ -304,7 +312,7 @@ export default function TemplatesPage() {
         let { error } = await supabase
           .from(activeSection.table)
           .insert(payload)
-        if (error && legacyPackingPayload && String(error.message).toLowerCase().includes('item_name')) {
+        if (error && legacyPackingPayload && isPackingColumnMismatch(error)) {
           const retry = await supabase
             .from(activeSection.table)
             .insert(legacyPackingPayload)
