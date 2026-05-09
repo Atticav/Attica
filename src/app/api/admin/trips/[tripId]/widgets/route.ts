@@ -41,24 +41,43 @@ export async function PUT(request: Request, { params }: { params: Promise<{ trip
   const body = await request.json()
 
   const { travel_style, ideal_duration, custom_notes, show_weather, show_currency, show_map_button, show_vocabulary } = body
+  const payload = {
+    trip_id: tripId,
+    travel_style: travel_style || null,
+    ideal_duration: ideal_duration || null,
+    custom_notes: custom_notes || null,
+    show_weather: show_weather ?? true,
+    show_currency: show_currency ?? true,
+    show_map_button: show_map_button ?? true,
+    show_vocabulary: show_vocabulary ?? true,
+  }
 
   const { data, error } = await supabase
     .from('trip_widgets')
-    .upsert(
-      {
-        trip_id: tripId,
-        travel_style: travel_style || null,
-        ideal_duration: ideal_duration || null,
-        custom_notes: custom_notes || null,
-        show_weather: show_weather ?? true,
-        show_currency: show_currency ?? true,
-        show_map_button: show_map_button ?? true,
-        show_vocabulary: show_vocabulary ?? true,
-      },
-      { onConflict: 'trip_id' }
-    )
+    .upsert(payload, { onConflict: 'trip_id' })
     .select()
     .single()
+
+  if (error && error.code === '42P10') {
+    // Fallback for environments where trip_widgets.trip_id conflict metadata is missing for ON CONFLICT.
+    const { trip_id: _tripId, ...updatePayload } = payload
+    const { data: fallbackUpdatedRows, error: fallbackUpdateError } = await supabase
+      .from('trip_widgets')
+      .update(updatePayload)
+      .eq('trip_id', tripId)
+      .select()
+    if (fallbackUpdateError) return NextResponse.json({ error: fallbackUpdateError.message }, { status: 500 })
+    if (fallbackUpdatedRows && fallbackUpdatedRows.length > 0) return NextResponse.json(fallbackUpdatedRows[0])
+
+    const { data: insertData, error: insertError } = await supabase
+      .from('trip_widgets')
+      .insert(payload)
+      .select()
+      .single()
+
+    if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 })
+    return NextResponse.json(insertData)
+  }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)
