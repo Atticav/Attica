@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { MessageCircle, X, Send, ChevronDown } from 'lucide-react'
+import { MessageCircle, X, Send, ChevronDown, ArrowLeftRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { TripMessage } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -13,8 +13,11 @@ interface TripChatProps {
   embedded?: boolean
 }
 
+const CHAT_POSITION_STORAGE_KEY = 'attica-chat-position'
+
 export default function TripChat({ tripId, userId, userRole, embedded = false }: TripChatProps) {
   const [open, setOpen] = useState(embedded)
+  const [chatPosition, setChatPosition] = useState<'left' | 'right'>('right')
   const [messages, setMessages] = useState<TripMessage[]>([])
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
@@ -51,6 +54,16 @@ export default function TripChat({ tripId, userId, userRole, embedded = false }:
       .is('read_at', null)
     setUnreadCount(count ?? 0)
   }, [tripId, userRole, supabase])
+
+  useEffect(() => {
+    if (embedded) return
+    try {
+      const stored = window.localStorage.getItem(CHAT_POSITION_STORAGE_KEY)
+      if (stored === 'left' || stored === 'right') setChatPosition(stored)
+    } catch {
+      // ignore storage read errors
+    }
+  }, [embedded])
 
   useEffect(() => {
     loadMessages()
@@ -116,6 +129,18 @@ export default function TripChat({ tripId, userId, userRole, embedded = false }:
 
   const formatTime = (dateStr: string) =>
     new Date(dateStr).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+
+  function togglePosition() {
+    setChatPosition(prev => {
+      const next = prev === 'right' ? 'left' : 'right'
+      try {
+        window.localStorage.setItem(CHAT_POSITION_STORAGE_KEY, next)
+      } catch {
+        // ignore storage write errors
+      }
+      return next
+    })
+  }
 
   const chatBody = (
     <>
@@ -210,10 +235,18 @@ export default function TripChat({ tripId, userId, userRole, embedded = false }:
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+    <div
+      className={cn(
+        'fixed bottom-6 z-50 flex flex-col gap-3',
+        chatPosition === 'right' ? 'right-4 sm:right-6 items-end' : 'left-4 sm:left-6 items-start'
+      )}
+    >
       {open && (
         <div
-          className="w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-brand-border flex flex-col overflow-hidden"
+          className={cn(
+            'w-[min(24rem,calc(100vw-2rem))] bg-white rounded-2xl shadow-2xl border border-brand-border flex flex-col overflow-hidden',
+            chatPosition === 'right' ? 'origin-bottom-right' : 'origin-bottom-left'
+          )}
           style={{ height: '480px' }}
         >
           {chatBody}
@@ -221,7 +254,15 @@ export default function TripChat({ tripId, userId, userRole, embedded = false }:
       )}
 
       {/* Floating button */}
-      <div className="relative">
+      <div className={cn('relative flex items-center gap-2', chatPosition === 'right' ? 'flex-row' : 'flex-row-reverse')}>
+        <button
+          onClick={togglePosition}
+          className="w-9 h-9 rounded-full border border-brand-border bg-white text-brand-muted hover:text-brand-gold hover:border-brand-gold transition-colors flex items-center justify-center shadow-sm"
+          title={chatPosition === 'right' ? 'Mover chat para a esquerda' : 'Mover chat para a direita'}
+          aria-label={chatPosition === 'right' ? 'Mover chat para a esquerda' : 'Mover chat para a direita'}
+        >
+          <ArrowLeftRight size={14} strokeWidth={1.8} />
+        </button>
         <button
           onClick={() => setOpen((prev) => !prev)}
           className={cn(
