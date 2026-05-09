@@ -1145,6 +1145,43 @@ CREATE POLICY "Admin acesso total a template_gallery"
   USING (is_admin()) WITH CHECK (is_admin());
 
 -- =============================================
--- 34. RECARREGA CACHE DO POSTGREST
+-- 34. STORAGE POLICIES: bucket documents
+-- Nota: criar o bucket 'documents' manualmente no Supabase Dashboard antes de executar.
+-- =============================================
+
+DROP POLICY IF EXISTS "Cliente upload documents de suas trips" ON storage.objects;
+CREATE POLICY "Cliente upload documents de suas trips"
+  ON storage.objects FOR INSERT
+  WITH CHECK (
+    bucket_id = 'documents'
+    AND auth.role() = 'authenticated'
+    AND EXISTS (
+      SELECT 1 FROM public.trips
+      WHERE id = (storage.foldername(name))[1]::uuid
+      AND client_id = auth.uid()
+    )
+  );
+
+DROP POLICY IF EXISTS "Cliente lê documents de suas trips" ON storage.objects;
+CREATE POLICY "Cliente lê documents de suas trips"
+  ON storage.objects FOR SELECT
+  USING (
+    bucket_id = 'documents'
+    AND auth.role() = 'authenticated'
+    AND EXISTS (
+      SELECT 1 FROM public.trips
+      WHERE id = (storage.foldername(name))[1]::uuid
+      AND client_id = auth.uid()
+    )
+  );
+
+DROP POLICY IF EXISTS "Admin acesso total a documents storage" ON storage.objects;
+CREATE POLICY "Admin acesso total a documents storage"
+  ON storage.objects FOR ALL
+  USING (bucket_id = 'documents' AND (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin')
+  WITH CHECK (bucket_id = 'documents' AND (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin');
+
+-- =============================================
+-- 35. RECARREGA CACHE DO POSTGREST
 -- =============================================
 NOTIFY pgrst, 'reload schema';

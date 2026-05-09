@@ -43,6 +43,7 @@ export default function DocumentsPage() {
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   // Form state
   const [formTitle, setFormTitle] = useState('')
@@ -80,11 +81,17 @@ export default function DocumentsPage() {
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
+  const handleCloseModal = () => {
+    setModalOpen(false)
+    setSaveError(null)
+  }
+
   const handleAdd = async (e: FormEvent) => {
     e.preventDefault()
     if (!formTitle.trim()) return
 
     setSaving(true)
+    setSaveError(null)
     const supabase = createClient()
 
     let fileUrl: string | null = null
@@ -96,6 +103,7 @@ export default function DocumentsPage() {
         .from('documents')
         .upload(path, formFile)
       if (uploadError) {
+        setSaveError(`Erro ao enviar arquivo: ${uploadError.message || 'tente novamente'}`)
         setSaving(false)
         return
       }
@@ -121,7 +129,9 @@ export default function DocumentsPage() {
     })
 
     setSaving(false)
-    if (!error) {
+    if (error) {
+      setSaveError(`Erro ao salvar documento: ${error.message || 'tente novamente'}`)
+    } else {
       setModalOpen(false)
       resetForm()
       await loadData()
@@ -256,7 +266,7 @@ export default function DocumentsPage() {
       )}
 
       {/* Add Document Modal */}
-      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="Adicionar Documento" size="md">
+      <Modal isOpen={modalOpen} onClose={handleCloseModal} title="Adicionar Documento" size="md">
         <form onSubmit={handleAdd} className="space-y-4">
           <Input
             label="Título"
@@ -334,7 +344,10 @@ export default function DocumentsPage() {
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
-            <Button type="button" variant="ghost" size="sm" onClick={() => setModalOpen(false)}>
+            {saveError && (
+              <p className="flex-1 font-outfit text-sm text-red-600 self-center">{saveError}</p>
+            )}
+            <Button type="button" variant="ghost" size="sm" onClick={handleCloseModal}>
               Cancelar
             </Button>
             <Button type="submit" size="sm" loading={saving} disabled={!formTitle.trim()}>

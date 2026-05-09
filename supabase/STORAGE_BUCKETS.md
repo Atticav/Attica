@@ -17,6 +17,8 @@ Os buckets abaixo precisam ser criados manualmente no **Supabase Dashboard → S
 | `guide-videos` | Vídeos do Guia Attica (tutoriais, guias) | Sim |
 | `restaurants-photos` | Fotos de restaurantes recomendados | Sim |
 | `photography-images` | Fotos e vídeos de dicas de fotografia | Sim |
+| `culture-images` | Imagens exibidas na seção de Cultura | Sim |
+| `documents` | Documentos de viagem enviados pelos clientes (passaporte, visto, etc.) | Sim |
 
 ---
 
@@ -42,3 +44,5 @@ Os buckets abaixo precisam ser criados manualmente no **Supabase Dashboard → S
 | `guide-videos` | `src/app/admin/trips/[tripId]/[section]/page.tsx`, `src/app/admin/templates/page.tsx` |
 | `restaurants-photos` | `src/app/admin/trips/[tripId]/[section]/page.tsx` |
 | `photography-images` | `src/app/admin/trips/[tripId]/[section]/page.tsx`, `src/app/admin/templates/page.tsx` |
+| `culture-images` | `src/app/admin/trips/[tripId]/[section]/page.tsx` |
+| `documents` | `src/app/dashboard/[tripId]/documents/page.tsx` |
