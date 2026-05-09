@@ -55,9 +55,13 @@ export default function ChecklistPage() {
       .eq('trip_id', tripId)
       .order('order_index', { ascending: true })
 
-    if (!error && data) setItems(data)
+    if (!error && data) {
+      setItems(data)
+    } else if (error) {
+      setError(error.message || t.common.error)
+    }
     setLoading(false)
-  }, [tripId])
+  }, [tripId, t.common.error])
 
   useEffect(() => {
     loadItems()
@@ -97,7 +101,7 @@ export default function ChecklistPage() {
     })
 
     if (error) {
-      setError(t.common.error)
+      setError(error.message || t.common.error)
     } else {
       setModalOpen(false)
       setForm({ title: '', section: '', description: '' })

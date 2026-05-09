@@ -8,6 +8,8 @@ import { ToastContainer } from '@/components/ui/Toast'
 import { Plus, Edit2, Trash2, Luggage, CheckSquare, Link2, Clapperboard, Camera, BookOpen, Paperclip } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
+const PG_UNDEFINED_COLUMN_ERROR = '42703'
+
 const OPTION_LABELS: Record<string, string> = {
   clothing: 'Roupa',
   documents: 'Documento',
@@ -230,7 +232,10 @@ export default function TemplatesPage() {
     setEditItem(item)
     const initial: Record<string, string> = {}
     activeSection.fields.forEach(f => {
-      initial[f.name] = item[f.name] !== null && item[f.name] !== undefined ? String(item[f.name]) : ''
+      const value = f.name === 'item_name' && activeSection.key === 'packing'
+        ? (item[f.name] ?? item.name)
+        : item[f.name]
+      initial[f.name] = value !== null && value !== undefined ? String(value) : ''
     })
     setFormData(initial)
     setModalOpen(true)
@@ -271,20 +276,48 @@ export default function TemplatesPage() {
         else payload[f.name] = val
       })
 
+      const getLegacyPackingPayload = () => {
+        if (activeSection.key !== 'packing' || payload.item_name === undefined) return null
+        const { item_name, ...rest } = payload
+        return { ...rest, name: item_name }
+      }
+
+      const legacyPackingPayload = getLegacyPackingPayload()
+
+      const isPackingColumnMismatch = (err: { code?: string; message?: string; details?: string; hint?: string } | null) => {
+        if (!err || activeSection.key !== 'packing') return false
+        if (err.code !== PG_UNDEFINED_COLUMN_ERROR) return false
+        const fullMessage = [err.message, err.details, err.hint].filter(Boolean).join(' ').toLowerCase()
+        return fullMessage.includes('item_name')
+      }
+
       if (editItem) {
-        const { error } = await supabase
+        let { error } = await supabase
           .from(activeSection.table)
           .update(payload)
           .eq('id', editItem.id)
+        if (error && legacyPackingPayload && isPackingColumnMismatch(error)) {
+          const retry = await supabase
+            .from(activeSection.table)
+            .update(legacyPackingPayload)
+            .eq('id', editItem.id)
+          error = retry.error
+        }
         if (error) {
           console.error('Template update error:', error)
           throw new Error(error.message || 'Erro ao atualizar item')
         }
         addToast('Item atualizado!', 'success')
       } else {
-        const { error } = await supabase
+        let { error } = await supabase
           .from(activeSection.table)
           .insert(payload)
+        if (error && legacyPackingPayload && isPackingColumnMismatch(error)) {
+          const retry = await supabase
+            .from(activeSection.table)
+            .insert(legacyPackingPayload)
+          error = retry.error
+        }
         if (error) {
           console.error('Template insert error:', error)
           throw new Error(error.message || 'Erro ao criar item')
@@ -331,10 +364,19 @@ export default function TemplatesPage() {
   function getDisplayFields(item: Record<string, unknown>): { label: string; value: string }[] {
     if (!activeSection) return []
     return activeSection.fields
-      .filter(f => f.type !== 'file' && item[f.name] !== null && item[f.name] !== undefined && item[f.name] !== '')
+      .filter(f => {
+        if (f.type === 'file') return false
+        const value = f.name === 'item_name' && activeSection.key === 'packing'
+          ? (item[f.name] ?? item.name)
+          : item[f.name]
+        return value !== null && value !== undefined && value !== ''
+      })
       .map(f => {
-        let value = String(item[f.name])
-        if (f.type === 'checkbox') value = item[f.name] ? 'Sim' : 'Não'
+        const raw = f.name === 'item_name' && activeSection.key === 'packing'
+          ? (item[f.name] ?? item.name)
+          : item[f.name]
+        let value = String(raw)
+        if (f.type === 'checkbox') value = raw ? 'Sim' : 'Não'
         else if (f.options) value = OPTION_LABELS[value] || value
         else if (value.length > 60) value = value.slice(0, 60) + '...'
         return { label: f.label, value }

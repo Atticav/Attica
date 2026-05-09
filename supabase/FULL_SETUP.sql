@@ -441,6 +441,11 @@ CREATE POLICY "Cliente atualiza checklist_items de suas trips"
   USING (EXISTS (SELECT 1 FROM public.trips WHERE id = trip_id AND client_id = auth.uid()))
   WITH CHECK (EXISTS (SELECT 1 FROM public.trips WHERE id = trip_id AND client_id = auth.uid()));
 
+DROP POLICY IF EXISTS "Cliente insere checklist_items em suas trips" ON public.checklist_items;
+CREATE POLICY "Cliente insere checklist_items em suas trips"
+  ON public.checklist_items FOR INSERT
+  WITH CHECK (EXISTS (SELECT 1 FROM public.trips WHERE id = trip_id AND client_id = auth.uid()));
+
 -- =============================================
 -- 13. TABELA: strategic_sections
 -- =============================================
