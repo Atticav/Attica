@@ -59,8 +59,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ trip
     .single()
 
   if (error && error.code === '42P10') {
-    const { trip_id, ...updatePayload } = payload
-    void trip_id
+    // Fallback for environments where trip_widgets.trip_id conflict metadata is missing for ON CONFLICT.
+    const { trip_id: _tripId, ...updatePayload } = payload
     const { data: fallbackUpdatedRows, error: fallbackUpdateError } = await supabase
       .from('trip_widgets')
       .update(updatePayload)
