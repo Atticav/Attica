@@ -539,9 +539,10 @@ export default function SectionPage({ params }: { params: Promise<{ tripId: stri
         if (f.virtual) return // skip virtual upload fields
         const val = formData[f.name]
         if (val === '' || val === undefined) {
-          // For number and checkbox fields, omit from payload so the DB default is used
-          // instead of sending null which would violate NOT NULL constraints
-          if (f.type === 'number' || f.type === 'checkbox') return
+          // For number, checkbox, and select (options) fields, omit from payload so the DB
+          // default is used instead of sending null which would violate NOT NULL constraints.
+          // f.options indicates a select/dropdown field (no explicit 'select' type is used here).
+          if (f.type === 'number' || f.type === 'checkbox' || f.options) return
           payload[f.name] = null
           return
         }
