@@ -59,12 +59,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ trip
     .single()
 
   if (error && error.code === '42P10') {
-    const updatePayload = (({ trip_id, ...rest }) => rest)(payload)
+    const { trip_id, ...updatePayload } = payload
+    void trip_id
     const { data: fallbackUpdatedRows, error: fallbackUpdateError } = await supabase
       .from('trip_widgets')
       .update(updatePayload)
       .eq('trip_id', tripId)
-      .select('*')
+      .select()
     if (fallbackUpdateError) return NextResponse.json({ error: fallbackUpdateError.message }, { status: 500 })
     if (fallbackUpdatedRows && fallbackUpdatedRows.length > 0) return NextResponse.json(fallbackUpdatedRows[0])
 
